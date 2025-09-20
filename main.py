@@ -19,7 +19,7 @@ class DBOperations:
 
   def __init__(self):
     try:
-      self.conn = sqlite3.connect("DBName.db")
+      self.conn = sqlite3.connect("mydb.db")
       self.cur = self.conn.cursor()
       self.cur.execute(self.sql_create_table_firsttime)
       self.conn.commit()
@@ -29,7 +29,7 @@ class DBOperations:
       self.conn.close()
 
   def get_connection(self):
-    self.conn = sqlite3.connect("DBName.db")
+    self.conn = sqlite3.connect("mydb.db")
     self.cur = self.conn.cursor()
 
   def create_table(self):
