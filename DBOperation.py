@@ -1,4 +1,6 @@
 import sqlite3
+from tabulate import tabulate
+import pandas as pd
 from flight import Flight
 from destination import Destination
 from pilot import Pilot
@@ -12,8 +14,8 @@ class DBOperations:
   sql_create_table = "create table TableName"
 
   sql_insert = '''INSERT INTO flights (departure_time, origin, status, pilot_id, destination_id) VALUES (?, ?, ?, ?, ?)'''
-  sql_select_all = "select * from TableName"
-  sql_search = "select * from TableName where FlightID = ?"
+  sql_select_all = '''SELECT * FROM flights ORDER BY departure_time ASC'''
+  sql_search = "select * from flights where FlightID = ?"
   sql_alter_data = ""
   sql_update_data = ""
   sql_delete_data = ""
@@ -69,9 +71,9 @@ class DBOperations:
     try:
       self.get_connection()
       self.cur.execute(self.sql_select_all)
-      result = self.cur.fetchall()
-
-      # think how you could develop this method to show the records
+      all_rows = self.cur.fetchall()
+      df = pd.DataFrame(all_rows, columns=['Flight ID', 'Departure Time', 'Origin', 'Status', 'Pilot ID', 'Destination ID'])
+      print(tabulate(df, headers='keys', tablefmt='psql', showindex=False))
 
     except Exception as e:
       print(e)
