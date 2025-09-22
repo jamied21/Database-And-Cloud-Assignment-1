@@ -1,5 +1,5 @@
 class Flight:
-    def __init__(self, flight_id, departure_time, origin, status, pilot_id, destination_id):
+    def __init__(self, flight_id = None, departure_time = '', origin = '', status = '', pilot_id = 0, destination_id = 0):
         self.flight_id = flight_id
         self.departure_time = departure_time
         self.origin = origin
@@ -44,6 +44,4 @@ class Flight:
         self.destination_id = destination_id
 
     def __str__(self):
-        return "Flight ID: {}, Departure: {} Origin: {}, Status: {}, Pilot ID {}, Destination ID {}".format(self.pilot_id, self.departure_time, self.origin, self.status, self.pilot_id, self.destination_id)
-
-
+        return  str(self.departure_time) + "\n" + self.origin + "\n" + self.status + "\n" + str(self.pilot_id) + "\n" + str(self.destination_id)
