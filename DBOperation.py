@@ -11,7 +11,7 @@ class DBOperations:
 
   sql_create_table = "create table TableName"
 
-  sql_insert = ""
+  sql_insert = '''INSERT INTO flights (departure_time, origin, status, pilot_id, destination_id) VALUES (?, ?, ?, ?, ?)'''
   sql_select_all = "select * from TableName"
   sql_search = "select * from TableName where FlightID = ?"
   sql_alter_data = ""
@@ -49,10 +49,14 @@ class DBOperations:
     try:
       self.get_connection()
 
-      flight = FlightInfo()
-      flight.set_flight_id(int(input("Enter FlightID: ")))
+      flight = Flight()
+      flight.set_departure_time(input("Enter Departure Time: "))
+      flight.set_origin(input("Enter Flight Origin: "))
+      flight.set_status(input("Enter Status: "))
+      flight.set_pilot_id(int(input("Enter Pilot ID: ")))
+      flight.set_destination_id(int(input("Enter Destination ID: ")))
 
-      self.cur.execute(self.sql_insert, tuple(str(flight).split("\n")))
+      self.cur.execute(self.sql_insert, tuple(str(flight).split("\n"))) ### Need to insert multiple values in one statment
 
       self.conn.commit()
       print("Inserted data successfully")
@@ -77,8 +81,8 @@ class DBOperations:
   def search_data(self):
     try:
       self.get_connection()
-      flightID = int(input("Enter FlightNo: "))
-      self.cur.execute(self.sql_search, tuple(str(flightID)))
+      flight_id = int(input("Enter FlightNo: "))
+      self.cur.execute(self.sql_search, tuple(str(flight_id)))
       result = self.cur.fetchone()
       if type(result) == type(tuple()):
         for index, detail in enumerate(result):
