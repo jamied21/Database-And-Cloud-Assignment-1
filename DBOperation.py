@@ -67,6 +67,8 @@ class DBOperations:
     finally:
       self.conn.close()
 
+
+# Use a join to show Pilots name and destination name
   def select_all(self):
     try:
       self.get_connection()
@@ -80,9 +82,16 @@ class DBOperations:
     finally:
       self.conn.close()
 
+
+    ### Search by variety of criteria e.g destination, Pilot Id or Name and flight Id
+    ### Will need to update search query to adjust for this
   def search_data(self):
     try:
       self.get_connection()
+
+      # give user choice of criteria to search by e.g destination, pilot, flight and status
+
+
       flight_id = int(input("Enter FlightNo: "))
       self.cur.execute(self.sql_search, tuple(str(flight_id)))
       result = self.cur.fetchone()
@@ -104,35 +113,47 @@ class DBOperations:
     finally:
       self.conn.close()
 
-  def update_data(self):
+
+def summarise_date(self):
     try:
       self.get_connection()
-
-      # Update statement
-
-      if result.rowcount != 0:
-        print(str(result.rowcount) + "Row(s) affected.")
-      else:
-        print("Cannot find this record in the database")
+      # TODO: Add aggregate queries e.g count, average, min and max
 
     except Exception as e:
-      print(e)
+       print(e)
     finally:
-      self.conn.close()
+        self.conn.close()
 
 
-# Define Delete_data method to delete data from the table. The user will need to input the flight id to delete the corrosponding record.
-
-  def delete_data(self):
-    try:
-      self.get_connection()
-
-      if result.rowcount != 0:
-        print(str(result.rowcount) + "Row(s) affected.")
-      else:
-        print("Cannot find this record in the database")
-
-    except Exception as e:
-      print(e)
-    finally:
-      self.conn.close()
+#   def update_data(self):
+#     try:
+#       self.get_connection()
+#
+#       # Update statement
+#
+#       if result.rowcount != 0:
+#         print(str(result.rowcount) + "Row(s) affected.")
+#       else:
+#         print("Cannot find this record in the database")
+#
+#     except Exception as e:
+#       print(e)
+#     finally:
+#       self.conn.close()
+#
+#
+# # Define Delete_data method to delete data from the table. The user will need to input the flight id to delete the corrosponding record.
+#
+#   def delete_data(self):
+#     try:
+#       self.get_connection()
+#
+#       if result.rowcount != 0:
+#         print(str(result.rowcount) + "Row(s) affected.")
+#       else:
+#         print("Cannot find this record in the database")
+#
+#     except Exception as e:
+#       print(e)
+#     finally:
+#       self.conn.close()
