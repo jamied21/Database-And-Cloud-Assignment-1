@@ -15,7 +15,7 @@ class DBOperations:
 
   sql_insert = '''INSERT INTO flights (departure_time, origin, status, pilot_id, destination_id) VALUES (?, ?, ?, ?, ?)'''
   sql_select_all = '''SELECT * FROM flights ORDER BY departure_time ASC'''
-  sql_search = "select * from flights where FlightID = ?"
+  sql_search = '''SELECT * FROM flights WHERE {} = ?'''
   sql_alter_data = ""
   sql_update_data = ""
   sql_delete_data = ""
@@ -82,19 +82,39 @@ class DBOperations:
     finally:
       self.conn.close()
 
+  def search_data_menu(self):
+     print(" Please Search for a flight using one of the following Criteria:")
+     print(" 1. Flight ID")  ## Already created from inject_data file, db should carry over
+     print(" 2. Pilot ID")
+     print(" 3. Destination ID")
+
+     column = ''
+     criteria_selected = int(input("Enter criteria to search for: "))
+
+     if criteria_selected == 1:
+         column = 'flight_id'
+         output = int(input("Enter Flight ID: "))
+         self.search_data(output, column)
+     elif criteria_selected == 2:
+         column = 'pilot_id'
+         output = int(input("Enter Pilot ID: "))
+         self.search_data(output, column)
+     elif criteria_selected == 3:
+         column = 'destination_id'
+         output = int(input("Enter Destination ID: "))
+         self.search_data(output, column)
+     else:
+         print("Invalid Choice")
 
     ### Search by variety of criteria e.g destination, Pilot Id or Name and flight Id
     ### Will need to update search query to adjust for this
-  def search_data(self):
+  def search_data(self, id_input, column):
     try:
       self.get_connection()
-
-      # give user choice of criteria to search by e.g destination, pilot, flight and status
-
-
-      flight_id = int(input("Enter FlightNo: "))
-      self.cur.execute(self.sql_search, tuple(str(flight_id)))
+      self.cur.execute(self.sql_search.format(column), (id_input,))
       result = self.cur.fetchone()
+      print("\n\n")
+
       if type(result) == type(tuple()):
         for index, detail in enumerate(result):
           if index == 0:
