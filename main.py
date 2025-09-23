@@ -64,7 +64,7 @@ while True:
   elif __choose_menu == 3:
     db_ops.select_all()
   elif __choose_menu == 4:
-    db_ops.search_data()
+    db_ops.search_data_menu()
   elif __choose_menu == 5:
     db_ops.update_data()
   elif __choose_menu == 6:
