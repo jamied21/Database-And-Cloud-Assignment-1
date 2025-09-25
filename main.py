@@ -1,43 +1,6 @@
 from DBOperation import DBOperations
 
 
-class FlightInfo:
-
-  def __init__(self):
-    self.flightID = 0
-    self.flightOrigin = ''
-    self.flightDestination = ''
-    self.status = ''
-
-  def set_flight_id(self, flightID):
-    self.flightID = flightID
-
-  def set_flight_origin(self, flightOrigin):
-    self.flight_origin = flightOrigin
-
-  def set_flight_destination(self, flightDestination):
-    self.flight_destination = flightDestination
-
-  def set_status(self, status):
-    self.status = status
-
-  def get_flight_id(self):
-    return self.flightID
-
-  def get_flight_origin(self):
-    return self.flightOrigin
-
-  def get_flight_destination(self):
-    return self.flightDestination
-
-  def get_status(self):
-    return self.status
-
-  def __str__(self):
-    return str(
-      self.flightID
-    ) + "\n" + self.flightOrigin + "\n" + self.flightDestination + "\n" + str(
-      self.status)
 
 
 # The main function will parse arguments.
@@ -53,7 +16,8 @@ while True:
   print(" 4. Search a flight")
   print(" 5. Update data some records")
   print(" 6. Delete data some records")
-  print(" 7. Exit\n")
+  print(" 7. Summarise data")
+  print(" 8. Exit\n")
 
   __choose_menu = int(input("Enter your choice: "))
   db_ops = DBOperations()
@@ -70,6 +34,8 @@ while True:
   elif __choose_menu == 6:
     db_ops.delete_data()
   elif __choose_menu == 7:
+      db_ops.aggregate_data()
+  elif __choose_menu == 8:
     exit(0)
   else:
     print("Invalid Choice")

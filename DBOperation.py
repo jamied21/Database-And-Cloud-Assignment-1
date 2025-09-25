@@ -3,14 +3,12 @@ from tabulate import tabulate
 import pandas as pd
 from flight import Flight
 from datetime import datetime
-from destination import Destination
-from pilot import Pilot
 
 # Define DBOperation class to manage all data into the database.
 # Give a name of your choice to the database
 
 class DBOperations:
-  sql_create_table_firsttime = "create table if not exists "
+  sql_create_table_firsttime = "create table if not exists " ## TODO: Make method that just copies the inject_data file
 
   sql_create_table = "create table TableName"
 
@@ -21,6 +19,7 @@ class DBOperations:
   sql_update_data = '''UPDATE flights SET {} = ? WHERE flight_id = ?'''
   sql_delete_data = '''DELETE FROM flights WHERE flight_id = ?'''
   sql_drop_table = ""
+  sql_aggregate_data = ""
 
   def __init__(self):
     try:
@@ -67,14 +66,15 @@ class DBOperations:
       print(e)
     finally:
       self.conn.close()
-
+  # TODO: Test casing and spaces
   # TODO: Use a join to show Pilots' names and destination names
   def select_all(self):
     try:
       self.get_connection()
       self.cur.execute(self.sql_select_all)
       all_rows = self.cur.fetchall()
-      df = pd.DataFrame(all_rows, columns=['Flight ID', 'Departure Time', 'Origin', 'Status', 'Pilot ID', 'Destination ID'])
+      column_names = [description[0] for description in self.cur.description]
+      df = pd.DataFrame(all_rows, columns=column_names)
       print(tabulate(df, headers='keys', tablefmt='psql', showindex=False))
 
     except Exception as e:
@@ -82,6 +82,7 @@ class DBOperations:
     finally:
       self.conn.close()
 
+    ## TODO: Add search by date
   def search_data_menu(self):
      print(" Please Search for a flight using one of the following Criteria:")
      print(" 1. Flight ID")  ## Already created from inject_data file, db should carry over
@@ -91,26 +92,24 @@ class DBOperations:
      criteria_selected = int(input("Enter criteria to search for: "))
 
      if criteria_selected == 1:
-         column = 'flight_id'
+         selected_column = 'flight_id'
          output = int(input("Enter Flight ID: "))
-         self.search_data(output, column)
+         self.search_data(output, selected_column)
      elif criteria_selected == 2:
-         column = 'pilot_id'
+         selected_column = 'pilot_id'
          output = int(input("Enter Pilot ID: "))
-         self.search_data(output, column)
+         self.search_data(output, selected_column)
      elif criteria_selected == 3:
-         column = 'destination_id'
+         selected_column = 'destination_id'
          output = int(input("Enter Destination ID: "))
-         self.search_data(output, column)
+         self.search_data(output, selected_column)
      else:
          print("Invalid Choice")
 
-    ### Search by variety of criteria e.g destination, Pilot Id or Name and flight Id
-    ### Will need to update search query to adjust for this
-  def search_data(self, id_input, column):
+  def search_data(self, id_input, table_column):
     try:
       self.get_connection()
-      self.cur.execute(self.sql_search.format(column), (id_input,))
+      self.cur.execute(self.sql_search.format(table_column), (id_input,))
       result = self.cur.fetchone()
       print("\n\n")
 
@@ -132,12 +131,29 @@ class DBOperations:
     finally:
       self.conn.close()
 
-
-  def summarise_date(self):
+  def aggregate_data(self):
     try:
       self.get_connection()
-      # TODO: Add aggregate queries e.g count, average, min and max
 
+      print("Summarise flight data by:")
+      print(" 1. Destination")
+      print(" 2. Pilot")
+      print(" 3. Flight Status")
+
+      input_choice = int(input("Enter your choice as a number: "))
+
+      if input_choice == 1:
+          self.sql_aggregate_data = "SELECT COUNT(*) AS [Number of Flights], destinations.city AS [City] FROM flights INNER JOIN destinations ON flights.destination_id = destinations.destination_id GROUP BY destinations.city"
+      elif input_choice == 2:
+          self.sql_aggregate_data = "SELECT COUNT(*) AS [Number of Flights], pilots.name AS [Pilot] FROM flights INNER JOIN pilots ON flights.pilot_id = pilots.pilot_id GROUP BY pilots.name"
+      elif input_choice == 3:
+          self.sql_aggregate_data = "SELECT COUNT(*) AS [Number of Flights], flights.status AS [Status] FROM flights GROUP BY flights.status"
+
+      self.cur.execute(self.sql_aggregate_data)
+      all_rows = self.cur.fetchall()
+      column_names = [description[0] for description in self.cur.description]
+      df = pd.DataFrame(all_rows, columns=column_names)
+      print(tabulate(df, headers='keys', tablefmt='psql', showindex=False))
     except Exception as e:
        print(e)
     finally:
@@ -206,10 +222,12 @@ class DBOperations:
       self.conn.close()
 
 
-## TODO: Validate status choices
+## TODO: Validate status choices e.g check they from On Time, Scheduled, Delayed.
+# Also ensure consistency in casing and space so if user enters all lower case it is set to the correct format e.g delayed to Delayed on time to On Time
 
-## TODO: Validate if int and catch
+## TODO: Validate if int and catch errors if not
 
+## TODO: Add method for display data
 
 # Define Delete_data method to delete data from the table. The user will need to input the flight id to delete the corrosponding record.
 
