@@ -2,6 +2,7 @@ import sqlite3
 from tabulate import tabulate
 import pandas as pd
 from flight import Flight
+from datetime import datetime
 from destination import Destination
 from pilot import Pilot
 
@@ -17,7 +18,7 @@ class DBOperations:
   sql_select_all = '''SELECT * FROM flights ORDER BY departure_time ASC'''
   sql_search = '''SELECT * FROM flights WHERE {} = ?'''
   sql_alter_data = ""
-  sql_update_data = ""
+  sql_update_data = '''UPDATE flights SET {} = ? WHERE flight_id = ?'''
   sql_delete_data = ""
   sql_drop_table = ""
 
@@ -67,8 +68,7 @@ class DBOperations:
     finally:
       self.conn.close()
 
-
-# Use a join to show Pilots name and destination name
+  # TODO: Use a join to show Pilots' names and destination names
   def select_all(self):
     try:
       self.get_connection()
@@ -88,7 +88,6 @@ class DBOperations:
      print(" 2. Pilot ID")
      print(" 3. Destination ID")
 
-     column = ''
      criteria_selected = int(input("Enter criteria to search for: "))
 
      if criteria_selected == 1:
@@ -134,7 +133,7 @@ class DBOperations:
       self.conn.close()
 
 
-def summarise_date(self):
+  def summarise_date(self):
     try:
       self.get_connection()
       # TODO: Add aggregate queries e.g count, average, min and max
@@ -144,24 +143,74 @@ def summarise_date(self):
     finally:
         self.conn.close()
 
+  @staticmethod
+  def get_valid_departure_time():
+      while True:
+          user_input = input("Enter Departure Time (YYYY-MM-DD HH:MM): ")
+          try:
+              # Seconds are not used for input
+              dt = datetime.strptime(user_input, "%Y-%m-%d %H:%M")
+              return dt.strftime("%Y-%m-%d %H:%M:00")
+          except ValueError:
+              print("Invalid format. Please use the format YYYY-MM-DD HH:MM.")
+          except Exception as e:
+              print("Unexpected error:", e)
 
-#   def update_data(self):
-#     try:
-#       self.get_connection()
-#
-#       # Update statement
-#
-#       if result.rowcount != 0:
-#         print(str(result.rowcount) + "Row(s) affected.")
-#       else:
-#         print("Cannot find this record in the database")
-#
-#     except Exception as e:
-#       print(e)
-#     finally:
-#       self.conn.close()
-#
-#
+
+  def update_data(self):
+    try:
+      self.get_connection()
+
+      flight_id = int(input("Enter Flight ID to update: "))
+
+      print("Which data would you like to update?")
+      print(" 1. Departure Time")
+      print(" 2. Origin")
+      print(" 3. Status")
+      print(" 4. Pilot ID")
+      print(" 5. Destination ID")
+
+      choice = int(input("Enter your choice "))
+      column_to_update = ''
+
+      if choice == 1:
+          column_to_update = "departure_time"
+      elif choice == 2:
+          column_to_update = "origin"
+      elif choice == 3:
+          column_to_update = "status"
+      elif choice == 4:
+          column_to_update = "pilot_id"
+      elif choice == 5:
+          column_to_update = "destination_id"
+      else:
+          print("Invalid Choice")
+
+      if choice == 1:
+          new_value = self.get_valid_departure_time()
+      elif choice == 4 or choice == 5:
+          new_value = int(input("Enter ID: "))
+      else:
+          new_value = input("Enter new value:")
+
+      self.cur.execute(self.sql_update_data.format(column_to_update), (new_value, flight_id))
+      self.conn.commit()
+      if self.cur.rowcount != 0:
+        print(str(self.cur.rowcount) + "Row(s) affected.")
+      else:
+        print("Cannot find this record in the database")
+
+    except Exception as e:
+      print(e)
+    finally:
+      self.conn.close()
+
+
+## TODO: Validate status choices
+
+## TODO: Validate if int and catch
+
+
 # # Define Delete_data method to delete data from the table. The user will need to input the flight id to delete the corrosponding record.
 #
 #   def delete_data(self):
