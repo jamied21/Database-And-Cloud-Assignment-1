@@ -19,7 +19,7 @@ class DBOperations:
   sql_search = '''SELECT * FROM flights WHERE {} = ?'''
   sql_alter_data = ""
   sql_update_data = '''UPDATE flights SET {} = ? WHERE flight_id = ?'''
-  sql_delete_data = ""
+  sql_delete_data = '''DELETE FROM flights WHERE flight_id = ?'''
   sql_drop_table = ""
 
   def __init__(self):
@@ -211,18 +211,22 @@ class DBOperations:
 ## TODO: Validate if int and catch
 
 
-# # Define Delete_data method to delete data from the table. The user will need to input the flight id to delete the corrosponding record.
-#
-#   def delete_data(self):
-#     try:
-#       self.get_connection()
-#
-#       if result.rowcount != 0:
-#         print(str(result.rowcount) + "Row(s) affected.")
-#       else:
-#         print("Cannot find this record in the database")
-#
-#     except Exception as e:
-#       print(e)
-#     finally:
-#       self.conn.close()
+# Define Delete_data method to delete data from the table. The user will need to input the flight id to delete the corrosponding record.
+
+  def delete_data(self):
+    try:
+      self.get_connection()
+      flight_id = int(input("Enter Flight ID to delete: "))
+
+      self.cur.execute(self.sql_delete_data, (flight_id,))
+      self.conn.commit()
+
+      if self.cur.rowcount != 0:
+        print(str(self.cur.rowcount) + "Row(s) affected.")
+      else:
+        print("Cannot find this record in the database")
+
+    except Exception as e:
+      print(e)
+    finally:
+      self.conn.close()
