@@ -21,6 +21,27 @@ class DBOperations:
   sql_drop_table = ""
   sql_aggregate_data = ""
 
+
+  def display_results(self,data, columns):
+      if data:
+          df = pd.DataFrame(data, columns=columns)
+          print(tabulate(df, headers='keys', tablefmt='psql', showindex=False))
+      else:
+          print("No records available.")
+
+
+  def get_valid_departure_time(self):
+      while True:
+          user_input = input("Enter Departure Time (YYYY-MM-DD HH:MM): ")
+          try:
+              # Seconds are not used for input
+              dt = datetime.strptime(user_input, "%Y-%m-%d %H:%M")
+              return dt.strftime("%Y-%m-%d %H:%M:00")
+          except ValueError:
+              print("Invalid format. Please use the format YYYY-MM-DD HH:MM.")
+          except Exception as e:
+              print("Unexpected error:", e)
+
   def __init__(self):
     try:
       self.conn = sqlite3.connect("mydb.db")
@@ -66,6 +87,7 @@ class DBOperations:
       print(e)
     finally:
       self.conn.close()
+
   # TODO: Test casing and spaces
   # TODO: Use a join to show Pilots' names and destination names
   def select_all(self):
@@ -110,21 +132,10 @@ class DBOperations:
     try:
       self.get_connection()
       self.cur.execute(self.sql_search.format(table_column), (id_input,))
-      result = self.cur.fetchone()
+      result = self.cur.fetchall()
+      columns = [description[0] for description in self.cur.description]
       print("\n\n")
-
-      if type(result) == type(tuple()):
-        for index, detail in enumerate(result):
-          if index == 0:
-            print("Flight ID: " + str(detail))
-          elif index == 1:
-            print("Flight Origin: " + detail)
-          elif index == 2:
-            print("Flight Destination: " + detail)
-          else:
-            print("Status: " + str(detail))
-      else:
-        print("No Record")
+      self.display_results(result, columns)
 
     except Exception as e:
       print(e)
@@ -152,26 +163,12 @@ class DBOperations:
       self.cur.execute(self.sql_aggregate_data)
       all_rows = self.cur.fetchall()
       column_names = [description[0] for description in self.cur.description]
-      df = pd.DataFrame(all_rows, columns=column_names)
-      print(tabulate(df, headers='keys', tablefmt='psql', showindex=False))
+      self.display_results(all_rows, column_names)
+
     except Exception as e:
        print(e)
     finally:
         self.conn.close()
-
-  @staticmethod
-  def get_valid_departure_time():
-      while True:
-          user_input = input("Enter Departure Time (YYYY-MM-DD HH:MM): ")
-          try:
-              # Seconds are not used for input
-              dt = datetime.strptime(user_input, "%Y-%m-%d %H:%M")
-              return dt.strftime("%Y-%m-%d %H:%M:00")
-          except ValueError:
-              print("Invalid format. Please use the format YYYY-MM-DD HH:MM.")
-          except Exception as e:
-              print("Unexpected error:", e)
-
 
   def update_data(self):
     try:
