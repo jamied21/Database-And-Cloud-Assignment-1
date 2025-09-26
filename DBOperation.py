@@ -76,42 +76,55 @@ class DBOperations:
       self.cur.execute(self.sql_select_all)
       all_rows = self.cur.fetchall()
       column_names = [description[0] for description in self.cur.description]
-      df = pd.DataFrame(all_rows, columns=column_names)
-      print(tabulate(df, headers='keys', tablefmt='psql', showindex=False))
+      self.display_results(all_rows, column_names)
 
     except Exception as e:
       print(e)
     finally:
       self.conn.close()
 
-    ## TODO: Add search by date
+    ## TODO: Add validation for search by date YYYY-MM-DD
   def search_data_menu(self):
      print(" Please Search for a flight using one of the following Criteria:")
-     print(" 1. Flight ID")  ## Already created from inject_data file, db should carry over
+     print(" 1. Flight ID")
      print(" 2. Pilot ID")
      print(" 3. Destination ID")
+     print(" 4. Departure Time")
 
-     criteria_selected = int(input("Enter criteria to search for: "))
+     try:
+         criteria_selected = int(input("Enter criteria to search for: "))
 
-     if criteria_selected == 1:
-         selected_column = 'flight_id'
-         output = int(input("Enter Flight ID: "))
-         self.search_data(output, selected_column)
-     elif criteria_selected == 2:
-         selected_column = 'pilot_id'
-         output = int(input("Enter Pilot ID: "))
-         self.search_data(output, selected_column)
-     elif criteria_selected == 3:
-         selected_column = 'destination_id'
-         output = int(input("Enter Destination ID: "))
-         self.search_data(output, selected_column)
-     else:
-         print("Invalid Choice")
+         if criteria_selected == 1:
+             selected_column = 'flight_id'
+             output = int(input("Enter Flight ID: "))
+             self.search_data(output, selected_column)
+         elif criteria_selected == 2:
+             selected_column = 'pilot_id'
+             output = int(input("Enter Pilot ID: "))
+             self.search_data(output, selected_column)
+         elif criteria_selected == 3:
+             selected_column = 'destination_id'
+             output = int(input("Enter Destination ID: "))
+             self.search_data(output, selected_column)
+         elif criteria_selected == 4:
+             selected_column = 'departure_time'
+             output = input("Enter Departure Date: ")
+             self.search_data(output, selected_column)
+         else:
+             print("Invalid Choice")
+
+     except ValueError:
+         print("Invalid input type. Please enter a number for IDs")
 
   def search_data(self, id_input, table_column):
     try:
       self.get_connection()
-      self.cur.execute(self.sql_search.format(table_column), (id_input,))
+      if table_column == 'departure_time':
+          sql_search_date = ''' SELECT * FROM flights WHERE Date(departure_time)'''
+          self.cur.execute(sql_search_date, (id_input,))
+      else:
+          self.cur.execute(self.sql_search.format(table_column), (id_input,))
+
       result = self.cur.fetchall()
       columns = [description[0] for description in self.cur.description]
       print("\n\n")
