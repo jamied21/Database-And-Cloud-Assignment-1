@@ -21,6 +21,16 @@ class DBOperations:
   sql_drop_table = ""
   sql_aggregate_data = ""
 
+  def __init__(self):
+    try:
+      self.conn = sqlite3.connect("mydb.db")
+      self.cur = self.conn.cursor()
+      self.cur.execute(self.sql_create_table_firsttime)
+      self.conn.commit()
+    except Exception as e:
+      print(e)
+    finally:
+      self.conn.close()
 
   def display_results(self,data, columns):
       if data:
@@ -41,17 +51,6 @@ class DBOperations:
               print("Invalid format. Please use the format YYYY-MM-DD HH:MM.")
           except Exception as e:
               print("Unexpected error:", e)
-
-  def __init__(self):
-    try:
-      self.conn = sqlite3.connect("mydb.db")
-      self.cur = self.conn.cursor()
-      self.cur.execute(self.sql_create_table_firsttime)
-      self.conn.commit()
-    except Exception as e:
-      print(e)
-    finally:
-      self.conn.close()
 
   def get_connection(self):
     self.conn = sqlite3.connect("mydb.db")
