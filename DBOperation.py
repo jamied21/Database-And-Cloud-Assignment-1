@@ -32,26 +32,6 @@ class DBOperations:
     finally:
       self.conn.close()
 
-  def display_results(self,data, columns):
-      if data:
-          df = pd.DataFrame(data, columns=columns)
-          print(tabulate(df, headers='keys', tablefmt='psql', showindex=False))
-      else:
-          print("No records available.")
-
-
-  def get_valid_departure_time(self):
-      while True:
-          user_input = input("Enter Departure Time (YYYY-MM-DD HH:MM): ")
-          try:
-              # Seconds are not used for input
-              dt = datetime.strptime(user_input, "%Y-%m-%d %H:%M")
-              return dt.strftime("%Y-%m-%d %H:%M:00")
-          except ValueError:
-              print("Invalid format. Please use the format YYYY-MM-DD HH:MM.")
-          except Exception as e:
-              print("Unexpected error:", e)
-
   def get_connection(self):
     self.conn = sqlite3.connect("mydb.db")
     self.cur = self.conn.cursor()
@@ -67,6 +47,7 @@ class DBOperations:
     finally:
       self.conn.close()
 
+  ## TODO: Validate Departure Time input
   def insert_data(self):
     try:
       self.get_connection()
@@ -199,7 +180,7 @@ class DBOperations:
           print("Invalid Choice")
 
       if choice == 1:
-          new_value = self.get_valid_departure_time()
+          new_value = self.get_valid_departure_date_and_time()
       elif choice == 4 or choice == 5:
           new_value = int(input("Enter ID: "))
       else:
@@ -216,16 +197,6 @@ class DBOperations:
       print(e)
     finally:
       self.conn.close()
-
-
-## TODO: Validate status choices e.g check they from On Time, Scheduled, Delayed.
-# Also ensure consistency in casing and space so if user enters all lower case it is set to the correct format e.g delayed to Delayed on time to On Time
-
-## TODO: Validate if int and catch errors if not
-
-## TODO: Add method for display data
-
-# Define Delete_data method to delete data from the table. The user will need to input the flight id to delete the corrosponding record.
 
   def delete_data(self):
     try:
@@ -244,3 +215,30 @@ class DBOperations:
       print(e)
     finally:
       self.conn.close()
+
+  def display_results(self,data, columns):
+      if data:
+          df = pd.DataFrame(data, columns=columns)
+          print(tabulate(df, headers='keys', tablefmt='psql', showindex=False))
+      else:
+          print("No records available.")
+
+
+  def get_valid_departure_date_and_time(self):
+      while True:
+          user_input = input("Enter Departure Time (YYYY-MM-DD HH:MM): ")
+          try:
+              # Seconds are not used for input
+              dt = datetime.strptime(user_input, "%Y-%m-%d %H:%M")
+              return dt.strftime("%Y-%m-%d %H:%M:00")
+          except ValueError:
+              print("Invalid format. Please use the format YYYY-MM-DD HH:MM.")
+          except Exception as e:
+              print("Unexpected error:", e)
+
+## TODO: Validate status choices e.g check they from On Time, Scheduled, Delayed.
+# Also ensure consistency in casing and space so if user enters all lower case it is set to the correct format e.g delayed to Delayed on time to On Time
+
+## TODO: Validate if int and catch errors if not
+
+# Define Delete_data method to delete data from the table. The user will need to input the flight id to delete the corrosponding record.
