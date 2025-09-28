@@ -112,17 +112,16 @@ class DBOperations:
     finally:
       self.conn.close()
 
-  ## TODO: Validate Departure Time input
   def insert_data(self):
     try:
       self.get_connection()
 
       flight = Flight()
-      flight.set_departure_time(input("Enter Departure Time: "))
-      flight.set_origin(input("Enter Flight Origin: "))
-      flight.set_status(input("Enter Status: "))
-      flight.set_pilot_id(int(input("Enter Pilot ID: ")))
-      flight.set_destination_id(int(input("Enter Destination ID: ")))
+      flight.set_departure_time(self.get_valid_departure_date_and_time())
+      flight.set_origin(input("Enter Flight Origin: ").strip().title())
+      flight.set_status(self.get_valid_flight_status())
+      flight.set_pilot_id(self.get_valid_id("Enter Pilot ID: "))
+      flight.set_destination_id(self.get_valid_id("Enter Destination ID: "))
 
       self.cur.execute(self.sql_insert, tuple(str(flight).split("\n"))) ### Need to insert multiple values in one statment
 
@@ -148,7 +147,6 @@ class DBOperations:
     finally:
       self.conn.close()
 
-    ## TODO: Add validation for search by date YYYY-MM-DD
   def search_data_menu(self):
      print(" Please Search for a flight using one of the following Criteria:")
      print(" 1. Flight ID")
@@ -277,7 +275,7 @@ class DBOperations:
   def delete_data(self):
     try:
       self.get_connection()
-      flight_id = int(input("Enter Flight ID to delete: "))
+      flight_id = self.get_valid_id("Enter Flight ID to delete: ")
 
       self.cur.execute(self.sql_delete_data, (flight_id,))
       self.conn.commit()
@@ -322,9 +320,20 @@ class DBOperations:
           except Exception as e:
               print("Unexpected error:", e)
 
-## TODO: Validate status choices e.g check they from On Time, Scheduled, Delayed.
-# Also ensure consistency in casing and space so if user enters all lower case it is set to the correct format e.g delayed to Delayed on time to On Time
+  def get_valid_id(self,input_message):
+      while True:
+          try:
+              user_input = int(input(input_message).strip())
+              return user_input
+          except ValueError:
+              print("Invalid input. Please enter a valid integer for ID.")
 
-## TODO: Validate if int and catch errors if not
+  def get_valid_flight_status(self):
+      valid_choices = ["Delayed", "On Time", "Scheduled"]
+      while True:
+          user_input = input("Enter Flight Status: ").strip().lower().title()
 
-# Define Delete_data method to delete data from the table. The user will need to input the flight id to delete the corrosponding record.
+          if user_input in valid_choices:
+              return user_input
+          else:
+              print("Please choose a status of 'Delayed', 'On Time' or 'Scheduled' ")
