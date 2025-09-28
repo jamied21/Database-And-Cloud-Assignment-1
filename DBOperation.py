@@ -157,8 +157,7 @@ class DBOperations:
      print(" 4. Departure Time")
 
      try:
-         criteria_selected = int(input("Enter criteria to search for: "))
-
+         criteria_selected = int(input("Enter criteria to search for: ").strip())
          if criteria_selected == 1:
              selected_column = 'flight_id'
              output = int(input("Enter Flight ID: "))
@@ -173,11 +172,10 @@ class DBOperations:
              self.search_data(output, selected_column)
          elif criteria_selected == 4:
              selected_column = 'departure_time'
-             output = input("Enter Departure Date: ")
+             output = self.get_valid_departure_date()
              self.search_data(output, selected_column)
          else:
              print("Invalid Choice")
-
      except ValueError:
          print("Invalid input type. Please enter a number for IDs")
 
@@ -185,14 +183,14 @@ class DBOperations:
     try:
       self.get_connection()
       if table_column == 'departure_time':
-          sql_search_date = ''' SELECT * FROM flights WHERE Date(departure_time)'''
-          self.cur.execute(sql_search_date, (id_input,))
+          sql_search_date = ''' SELECT * FROM flights WHERE {} LIKE ?'''
+          self.cur.execute(sql_search_date.format(table_column), (id_input + '%',))
       else:
           self.cur.execute(self.sql_search.format(table_column), (id_input,))
 
       result = self.cur.fetchall()
       columns = [description[0] for description in self.cur.description]
-      print("\n\n")
+      print("\n")
       self.display_results(result, columns)
 
     except Exception as e:
@@ -301,7 +299,6 @@ class DBOperations:
       else:
           print("No records available.")
 
-
   def get_valid_departure_date_and_time(self):
       while True:
           user_input = input("Enter Departure Time (YYYY-MM-DD HH:MM): ")
@@ -310,7 +307,18 @@ class DBOperations:
               dt = datetime.strptime(user_input, "%Y-%m-%d %H:%M")
               return dt.strftime("%Y-%m-%d %H:%M:00")
           except ValueError:
-              print("Invalid format. Please use the format YYYY-MM-DD HH:MM.")
+              print("Invalid Date or Time. Please use the format YYYY-MM-DD HH:MM.")
+          except Exception as e:
+              print("Unexpected error:", e)
+
+  def get_valid_departure_date(self):
+      while True:
+          user_input = input("Enter Departure Date YYYY-MM-DD: ")
+          try:
+              dt = datetime.strptime(user_input, "%Y-%m-%d")
+              return dt.strftime("%Y-%m-%d")
+          except ValueError:
+              print("Invalid Date. Please use the format YYYY-MM-DD.")
           except Exception as e:
               print("Unexpected error:", e)
 
