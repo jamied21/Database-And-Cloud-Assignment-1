@@ -116,6 +116,9 @@ class DBOperations:
     try:
       self.get_connection()
 
+      # Ensures non-existent foreign keys are not entered
+      self.cur.execute("PRAGMA foreign_keys = ON")
+
       flight = Flight()
       flight.set_departure_time(self.get_valid_departure_date_and_time())
       flight.set_origin(input("Enter Flight Origin: ").strip().title())
@@ -127,8 +130,11 @@ class DBOperations:
 
       self.conn.commit()
       print("Inserted data successfully")
+
+    except sqlite3.IntegrityError:
+        print("Error: The Pilot ID or Destination ID does not exist")
     except Exception as e:
-      print(e)
+        print(e)
     finally:
       self.conn.close()
 
@@ -227,6 +233,9 @@ class DBOperations:
     try:
       self.get_connection()
 
+      # Ensures non-existent foreign keys are not entered
+      self.cur.execute("PRAGMA foreign_keys = ON")
+
       flight_id = int(input("Enter Flight ID to update: "))
 
       print("Which data would you like to update?")
@@ -268,8 +277,10 @@ class DBOperations:
       else:
         print("Cannot find this record in the database")
 
+    except sqlite3.IntegrityError:
+        print("Error: The Pilot ID or Destination ID does not exist")
     except Exception as e:
-      print(e)
+        print(e)
     finally:
       self.conn.close()
 
