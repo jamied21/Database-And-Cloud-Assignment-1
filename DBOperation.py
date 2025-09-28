@@ -13,7 +13,7 @@ class DBOperations:
   sql_create_table = "create table TableName"
 
   sql_insert = '''INSERT INTO flights (departure_time, origin, status, pilot_id, destination_id) VALUES (?, ?, ?, ?, ?)'''
-  sql_select_all = '''SELECT * FROM flights ORDER BY departure_time ASC'''
+  sql_select_all = '''SELECT flights.*, destinations.city AS [Destination], pilots.name AS [Pilot Name] FROM flights INNER JOIN pilots on flights.pilot_id = pilots.pilot_id INNER JOIN destinations on flights.destination_id = destinations.destination_id ORDER BY departure_time ASC'''
   sql_search = '''SELECT * FROM flights WHERE {} = ?'''
   sql_alter_data = ""
   sql_update_data = '''UPDATE flights SET {} = ? WHERE flight_id = ?'''
