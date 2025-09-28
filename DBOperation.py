@@ -158,15 +158,15 @@ class DBOperations:
          criteria_selected = int(input("Enter criteria to search for: ").strip())
          if criteria_selected == 1:
              selected_column = 'flight_id'
-             output = int(input("Enter Flight ID: "))
+             output = self.get_valid_id("Enter Flight ID: ")
              self.search_data(output, selected_column)
          elif criteria_selected == 2:
              selected_column = 'pilot_id'
-             output = int(input("Enter Pilot ID: "))
+             output = self.get_valid_id("Enter Pilot ID: ")
              self.search_data(output, selected_column)
          elif criteria_selected == 3:
              selected_column = 'destination_id'
-             output = int(input("Enter Destination ID: "))
+             output = self.get_valid_id("Enter Destination ID: ")
              self.search_data(output, selected_column)
          elif criteria_selected == 4:
              selected_column = 'departure_time'
@@ -256,9 +256,11 @@ class DBOperations:
       if choice == 1:
           new_value = self.get_valid_departure_date_and_time()
       elif choice == 4 or choice == 5:
-          new_value = int(input("Enter ID: "))
+          new_value = self.get_valid_id("Enter ID: ")
+      elif choice == 3:
+          new_value = self.get_valid_flight_status()
       else:
-          new_value = input("Enter new value:")
+          new_value = input("Enter new value:").strip().title()
 
       self.cur.execute(self.sql_update_data.format(column_to_update), (new_value, flight_id))
       self.conn.commit()
