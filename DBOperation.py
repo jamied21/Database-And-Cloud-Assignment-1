@@ -132,7 +132,6 @@ class DBOperations:
     finally:
       self.conn.close()
 
-  # TODO: Test casing and spaces
   # TODO: Use a join to show Pilots' names and destination names
   def select_all(self):
     try:
@@ -331,11 +330,11 @@ class DBOperations:
               print("Invalid input. Please enter a valid integer for ID.")
 
   def get_valid_flight_status(self):
-      valid_choices = ["Delayed", "On Time", "Scheduled"]
+      valid_choices = ["Delayed", "On Time", "Scheduled","Cancelled"]
       while True:
           user_input = input("Enter Flight Status: ").strip().lower().title()
 
           if user_input in valid_choices:
               return user_input
           else:
-              print("Please choose a status of 'Delayed', 'On Time' or 'Scheduled' ")
+              print("Please enter a status of either 'Delayed', 'On Time', 'Scheduled' or 'Cancelled' ")
