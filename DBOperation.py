@@ -13,8 +13,8 @@ class DBOperations:
   sql_create_table = "create table TableName"
 
   sql_insert = '''INSERT INTO flights (departure_time, origin, status, pilot_id, destination_id) VALUES (?, ?, ?, ?, ?)'''
-  sql_select_all = '''SELECT flights.*, destinations.city AS [Destination], pilots.name AS [Pilot Name] FROM flights INNER JOIN pilots on flights.pilot_id = pilots.pilot_id INNER JOIN destinations on flights.destination_id = destinations.destination_id ORDER BY departure_time ASC'''
-  sql_search = '''SELECT * FROM flights WHERE {} = ?'''
+  sql_select_all = '''SELECT flights.*, destinations.city AS [Destination], pilots.name AS [Pilot Name] FROM flights INNER JOIN pilots ON flights.pilot_id = pilots.pilot_id INNER JOIN destinations ON flights.destination_id = destinations.destination_id ORDER BY departure_time ASC'''
+  sql_search = '''SELECT flights.*, destinations.city AS [Destination], pilots.name AS [Pilot Name] FROM flights INNER JOIN pilots on flights.pilot_id = pilots.pilot_id INNER JOIN destinations on flights.destination_id = destinations.destination_id WHERE flights.{} = ? '''
   sql_alter_data = ""
   sql_update_data = '''UPDATE flights SET {} = ? WHERE flight_id = ?'''
   sql_delete_data = '''DELETE FROM flights WHERE flight_id = ?'''
@@ -180,7 +180,7 @@ class DBOperations:
     try:
       self.get_connection()
       if table_column == 'departure_time':
-          sql_search_date = ''' SELECT * FROM flights WHERE {} LIKE ?'''
+          sql_search_date = ''' SELECT flights.*, destinations.city AS [Destination], pilots.name AS [Pilot Name] FROM flights INNER JOIN pilots on flights.pilot_id = pilots.pilot_id INNER JOIN destinations on flights.destination_id = destinations.destination_id WHERE flights.{} LIKE ?'''
           self.cur.execute(sql_search_date.format(table_column), (id_input + '%',))
       else:
           self.cur.execute(self.sql_search.format(table_column), (id_input,))
