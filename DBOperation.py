@@ -48,10 +48,10 @@ class DBOperations:
       self.cur.execute("CREATE TABLE pilots (pilot_id INTEGER NOT NULL, name TEXT, PRIMARY KEY (pilot_id))")
 
       self.cur.execute(
-          "CREATE TABLE destinations (destination_id INTEGER NOT NULL, country TEXT, city TEXT, PRIMARY KEY (destination_id))")
+          "CREATE TABLE destinations (destination_id INTEGER NOT NULL, airport CHAR(3) NOT NULL UNIQUE, country TEXT, city TEXT, PRIMARY KEY (destination_id))")
 
       self.cur.execute(
-          "CREATE TABLE flights (flight_id INTEGER NOT NULL, departure_time DATETIME, origin TEXT, status TEXT, pilot_id INTEGER NOT NULL, destination_id INTEGER NOT NULL, PRIMARY KEY (flight_id), FOREIGN KEY (pilot_id) REFERENCES pilots(pilot_id), FOREIGN KEY (destination_id) REFERENCES destinations(destination_id))")
+          "CREATE TABLE flights (flight_id INTEGER NOT NULL, departure_time DATETIME, status TEXT, pilot_id INTEGER NOT NULL, origin_id INTEGER NOT NULL, destination_id INTEGER NOT NULL, PRIMARY KEY (flight_id), FOREIGN KEY (pilot_id) REFERENCES pilots(pilot_id), FOREIGN KEY (origin_id) REFERENCES destinations(destination_id), FOREIGN KEY (destination_id) REFERENCES destinations(destination_id), CHECK (origin_id <> destination_id))")
 
       # Inject mock data
       self.cur.execute('''INSERT INTO pilots (name)
@@ -71,40 +71,44 @@ class DBOperations:
                                ('Richard Branson'),
                                ('Elon Musk')''')
 
-      self.cur.execute('''INSERT INTO destinations (country, city)
-                        VALUES ('USA', 'New York'),
-                               ('UK', 'London'),
-                               ('France', 'Paris'),
-                               ('Japan', 'Tokyo'),
-                               ('Australia', 'Sydney'),
-                               ('Brazil', 'Rio de Janeiro'),
-                               ('South Africa', 'Cape Town'),
-                               ('UAE', 'Dubai'),
-                               ('Canada', 'Toronto'),
-                               ('Germany', 'Berlin'),
-                               ('Italy', 'Rome'),
-                               ('China', 'Beijing'),
-                               ('India', 'Delhi'),
-                               ('Mexico', 'Mexico City'),
-                               ('Spain', 'Madrid')''')
+      self.cur.execute('''
+                       INSERT INTO destinations (airport, country, city)
+                       VALUES ('JFK', 'USA', 'New York'),
+                              ('LHR', 'UK', 'London'),
+                              ('CDG', 'France', 'Paris'),
+                              ('HND', 'Japan', 'Tokyo'),
+                              ('SYD', 'Australia', 'Sydney'),
+                              ('GIG', 'Brazil', 'Rio de Janeiro'),
+                              ('CPT', 'South Africa', 'Cape Town'),
+                              ('DXB', 'UAE', 'Dubai'),
+                              ('YYZ', 'Canada', 'Toronto'),
+                              ('BER', 'Germany', 'Berlin'),
+                              ('FCO', 'Italy', 'Rome'),
+                              ('PEK', 'China', 'Beijing'),
+                              ('DEL', 'India', 'Delhi'),
+                              ('MEX', 'Mexico', 'Mexico City'),
+                              ('MAD', 'Spain', 'Madrid')
+                       ''')
 
-      self.cur.execute('''INSERT INTO flights (departure_time, origin, status, pilot_id, destination_id)
-                        VALUES ('2025-09-21 08:00:00', 'Los Angeles', 'Scheduled', 1, 1),
-                               ('2025-09-21 12:30:00', 'London', 'On Time', 2, 2),
-                               ('2025-09-21 15:00:00', 'Paris', 'Delayed', 3, 3),
-                               ('2025-09-22 09:45:00', 'Tokyo', 'Scheduled', 4, 4),
-                               ('2025-09-22 18:00:00', 'Sydney', 'Cancelled', 5, 5),
-                               ('2025-09-23 07:15:00', 'Rio de Janeiro', 'Scheduled', 6, 6),
-                               ('2025-09-23 11:00:00', 'Cape Town', 'On Time', 7, 7),
-                               ('2025-09-23 14:30:00', 'Dubai', 'Delayed', 8, 8),
-                               ('2025-09-24 10:00:00', 'Toronto', 'Scheduled', 9, 9),
-                               ('2025-09-24 16:45:00', 'Berlin', 'On Time', 10, 10),
-                               ('2025-09-25 06:00:00', 'Rome', 'Scheduled', 11, 11),
-                               ('2025-09-25 13:30:00', 'Beijing', 'Delayed', 12, 12),
-                               ('2025-09-25 19:15:00', 'Delhi', 'On Time', 13, 13),
-                               ('2025-09-26 08:20:00', 'Mexico City', 'Scheduled', 14, 14),
-                               ('2025-09-26 17:00:00', 'Madrid', 'Cancelled', 15, 15)
-                     ''')
+      self.cur.execute('''
+                       INSERT INTO flights (departure_time, status, pilot_id, origin_id, destination_id)
+                       VALUES ('2025-09-21 08:00:00', 'Scheduled', 1, 2, 1),
+                              ('2025-09-21 12:30:00', 'On Time', 2, 1, 2),
+                              ('2025-09-21 15:00:00', 'Delayed', 3, 3, 4),
+                              ('2025-09-22 09:45:00', 'Scheduled', 4, 4, 5),
+                              ('2025-09-22 18:00:00', 'Cancelled', 5, 5, 6),
+                              ('2025-09-23 07:15:00', 'Scheduled', 6, 6, 7),
+                              ('2025-09-23 11:00:00', 'On Time', 7, 7, 8),
+                              ('2025-09-23 14:30:00', 'Delayed', 8, 8, 9),
+                              ('2025-09-24 10:00:00', 'Scheduled', 9, 9, 10),
+                              ('2025-09-24 16:45:00', 'On Time', 10, 10, 11),
+                              ('2025-09-25 06:00:00', 'Scheduled', 11, 11, 12),
+                              ('2025-09-25 13:30:00', 'Delayed', 12, 12, 13),
+                              ('2025-09-25 19:15:00', 'On Time', 13, 13, 14),
+                              ('2025-09-26 08:20:00', 'Scheduled', 14, 14, 15),
+                              ('2025-09-26 17:00:00', 'Cancelled', 15, 15, 1)
+                       ''')
+
       self.conn.commit()
       print("Tables and Mock data injected successfully")
     except Exception as e:
