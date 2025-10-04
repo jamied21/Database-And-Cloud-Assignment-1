@@ -11,31 +11,32 @@ while True:
   print("\n Menu:")
   print("**********")
   print(" 1. Inject Mock Data")
-  print(" 2. Insert data into Flights")
-  print(" 3. Select all data from Flights")
+  print(" 2. Create a new flight, destination or pilot record")
+  print(" 3. View all Flights")
   print(" 4. Search a flight")
-  print(" 5. Update data a flight record")
-  print(" 6. Delete data a flight record")
+  print(" 5. Update a flight record")
+  print(" 6. Delete a flight record")
   print(" 7. Summarise data")
   print(" 8. Exit\n")
 
-  __choose_menu = int(input("Enter your choice: "))
+  __choose_menu = input("Enter your choice: ")
   db_ops = DBOperations()
-  if __choose_menu == 1:
+  if __choose_menu == '1':
     db_ops.create_tables_and_inject_mock_data()
-  elif __choose_menu == 2:
+  elif __choose_menu == '2':
     db_ops.insert_data()
-  elif __choose_menu == 3:
+  elif __choose_menu == '3':
     db_ops.select_all()
-  elif __choose_menu == 4:
+  elif __choose_menu == '4':
     db_ops.search_data_menu()
-  elif __choose_menu == 5:
+  elif __choose_menu == '5':
     db_ops.update_data()
-  elif __choose_menu == 6:
+  elif __choose_menu == '6':
     db_ops.delete_data()
-  elif __choose_menu == 7:
+  elif __choose_menu == '7':
       db_ops.aggregate_data()
-  elif __choose_menu == 8:
+  elif __choose_menu == '8':
     exit(0)
   else:
     print("Invalid Choice")
+
