@@ -1,10 +1,10 @@
 class Flight:
-    def __init__(self, flight_id = None, departure_time = '', origin = '', status = '', pilot_id = 0, destination_id = 0):
+    def __init__(self, flight_id = None, departure_time = '', status = '', pilot_id = 0, origin_id = 0, destination_id = 0):
         self.flight_id = flight_id
         self.departure_time = departure_time
-        self.origin = origin
         self.status = status
         self.pilot_id = pilot_id
+        self.origin_id = origin_id
         self.destination_id = destination_id
 
     def get_flight_id(self):
@@ -19,12 +19,6 @@ class Flight:
     def set_departure_time(self, departure_time):
         self.departure_time = departure_time
 
-    def get_origin(self):
-        return self.origin
-
-    def set_origin(self, origin):
-        self.origin = origin
-
     def get_status(self):
         return self.status
 
@@ -37,6 +31,12 @@ class Flight:
     def set_pilot_id(self, pilot_id):
         self.pilot_id = pilot_id
 
+    def get_origin_id(self):
+        return self.origin_id
+
+    def set_origin_id(self, origin_id):
+        self.origin_id = origin_id
+
     def get_destination_id(self):
         return  self.destination_id
 
@@ -44,4 +44,4 @@ class Flight:
         self.destination_id = destination_id
 
     def __str__(self):
-        return  str(self.departure_time) + "\n" + self.origin + "\n" + self.status + "\n" + str(self.pilot_id) + "\n" + str(self.destination_id)
+        return  str(self.departure_time) + "\n" + self.status + "\n" + str(self.pilot_id) + "\n" + str(self.origin_id) + "\n" + str(self.destination_id)
