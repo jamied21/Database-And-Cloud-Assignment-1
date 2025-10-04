@@ -1,5 +1,5 @@
 class Pilot:
-    def __init__(self, pilot_id, name):
+    def __init__(self, pilot_id = None, name = ''):
         self.pilot_id = pilot_id
         self.name = name
 
@@ -16,5 +16,5 @@ class Pilot:
         self.name = name
 
     def __str__(self):
-        return "Pilot ID: {}, Name: {}".format(self.pilot_id, self.name)
+        return "Name: {}".format(self.name)
 
