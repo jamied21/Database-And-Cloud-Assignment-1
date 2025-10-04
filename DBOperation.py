@@ -1,8 +1,11 @@
 import sqlite3
 from tabulate import tabulate
 import pandas as pd
+import re
+from destination import Destination
 from flight import Flight
 from datetime import datetime
+from pilot import Pilot
 
 # Define DBOperation class to manage all data into the database.
 # Give a name of your choice to the database
@@ -12,7 +15,10 @@ class DBOperations:
 
   sql_create_table = "create table TableName"
 
-  sql_insert = '''INSERT INTO flights (departure_time, status, pilot_id, origin_id, destination_id) VALUES (?, ?, ?, ?, ?)'''
+  sql_insert_flight = '''INSERT INTO flights (departure_time, status, pilot_id, origin_id, destination_id) VALUES (?, ?, ?, ?, ?)'''
+  sql_insert_pilot= '''INSERT INTO pilots (name) VALUES (?)'''
+  sql_insert_destination = '''INSERT INTO destinations (airport, country, city) VALUES (?, ?, ?)'''
+
   sql_select_all = '''SELECT flights.*, destinations.city AS [Destination], pilots.name AS [Pilot Name] FROM flights INNER JOIN pilots ON flights.pilot_id = pilots.pilot_id INNER JOIN destinations ON flights.destination_id = destinations.destination_id ORDER BY departure_time ASC'''
   sql_search = '''SELECT flights.*, destinations.city AS [Destination], pilots.name AS [Pilot Name] FROM flights INNER JOIN pilots on flights.pilot_id = pilots.pilot_id INNER JOIN destinations on flights.destination_id = destinations.destination_id WHERE flights.{} = ? '''
   sql_alter_data = ""
@@ -123,14 +129,41 @@ class DBOperations:
       # Ensures non-existent foreign keys are not entered
       self.cur.execute("PRAGMA foreign_keys = ON")
 
-      flight = Flight()
-      flight.set_departure_time(self.get_valid_departure_date_and_time())
-      flight.set_status(self.get_valid_flight_status())
-      flight.set_pilot_id(self.get_valid_id("Enter Pilot ID: "))
-      flight.set_origin_id(self.get_valid_id("Enter Origin ID: "))
-      flight.set_destination_id(self.get_valid_id("Enter Destination ID: "))
+      print(" Which table do you want to insert into? Please ")
+      print(" 1. Flights")
+      print(" 2. Pilots")
+      print(" 3. Destinations")
 
-      self.cur.execute(self.sql_insert, tuple(str(flight).split("\n")))
+      while True:
+          user_input = input("Enter your choice ")
+          if user_input in ['1','2','3']:
+              break
+          print("Invalid choice, please enter '1' or '2' or '3'")
+
+
+      if  user_input == '1':
+          flight = Flight()
+          flight.set_departure_time(self.get_valid_departure_date_and_time())
+          flight.set_status(self.get_valid_flight_status())
+          flight.set_pilot_id(self.get_valid_id("Enter Pilot ID: "))
+          flight.set_origin_id(self.get_valid_id("Enter Origin ID: "))
+          flight.set_destination_id(self.get_valid_id("Enter Destination ID: "))
+          self.cur.execute(self.sql_insert_flight, tuple(str(flight).split("\n")))
+
+      elif user_input == '2':
+          pilot = Pilot()
+          pilot.set_name(self.get_valid_string_input("Enter Pilot Name:"))
+          self.cur.execute(self.sql_insert_pilot, (pilot.get_name(),))
+
+      elif user_input == '3':
+          destination = Destination()
+          destination.set_airport(self.get_valid_airport_code("Enter Airport Code: "))
+          destination.set_country(self.get_valid_string_input("Enter Country:"))
+          destination.set_city(self.get_valid_string_input("Enter City:"))
+          self.cur.execute(self.sql_insert_destination, (destination.get_airport(), destination.get_country(), destination.get_city()))
+
+      else:
+          print("Invalid input")
 
       self.conn.commit()
       print("Inserted data successfully")
@@ -368,14 +401,53 @@ class DBOperations:
           else:
               print("Please enter a status of either 'Delayed', 'On Time', 'Scheduled' or 'Cancelled' ")
 
+  def get_valid_string_input(self, input_message):
+      regex = re.compile('[@_!#$%^&*()<>?/\|}{~:]')
+      while True:
+
+              user_input = input(input_message).strip()
+              if user_input == "":
+                  print("Input cannot be empty.")
+              elif any(char.isdigit() for char in user_input):
+                  print("Invalid input. The input contain numbers.")
+              elif regex.search(user_input):
+                  print("Invalid Input. The input contains special characters")
+              else:
+                  return user_input.lower().title()
+
+  def get_valid_airport_code(self, input_message):
+      regex = re.compile('[@_!#$%^&*()<>?/\|}{~:]')
+      while True:
+          user_input = input(input_message).strip()
+
+          if user_input == "":
+              print("Input cannot be empty.")
+          elif len(user_input) != 3:
+              print("Airport Code must be 3 characters long.")
+          elif regex.search(user_input):
+              print("Invalid Input. The input contains special characters")
+          elif any(char.isdigit() for char in user_input):
+              print("Invalid input. The input contain numbers.")
+          elif self.check_if_airport_exists(user_input):
+              print("Airport already exists.")
+          else:
+              return user_input
+
   def check_if_flight_exists(self,flight_id):
-          try:
-              self.get_connection()
-              self.cur.execute("SELECT * FROM flights WHERE flight_id = ?", (flight_id,))
-              result = self.cur.fetchone()
+      try:
+          self.cur.execute("SELECT * FROM flights WHERE flight_id = ?", (flight_id,))
+          result = self.cur.fetchone()
+          return result is not None
+      except Exception as e:
+          print(f"Error checking if flight exists: {e}")
 
-              return result is not None
+  def check_if_airport_exists(self,airport):
+      try:
+          self.cur.execute("SELECT * FROM destinations WHERE airport = ?", (airport,))
+          result = self.cur.fetchone()
+          return result is not None
+      except Exception as e:
+          print(f"Error checking if airport exists: {e}")
 
-          except Exception as e:
-              print(f"Error checking if flight exists: {e}")
+
 
