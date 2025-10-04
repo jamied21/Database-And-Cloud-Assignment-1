@@ -12,7 +12,7 @@ class DBOperations:
 
   sql_create_table = "create table TableName"
 
-  sql_insert = '''INSERT INTO flights (departure_time, origin, status, pilot_id, destination_id) VALUES (?, ?, ?, ?, ?)'''
+  sql_insert = '''INSERT INTO flights (departure_time, status, pilot_id, origin_id, destination_id) VALUES (?, ?, ?, ?, ?)'''
   sql_select_all = '''SELECT flights.*, destinations.city AS [Destination], pilots.name AS [Pilot Name] FROM flights INNER JOIN pilots ON flights.pilot_id = pilots.pilot_id INNER JOIN destinations ON flights.destination_id = destinations.destination_id ORDER BY departure_time ASC'''
   sql_search = '''SELECT flights.*, destinations.city AS [Destination], pilots.name AS [Pilot Name] FROM flights INNER JOIN pilots on flights.pilot_id = pilots.pilot_id INNER JOIN destinations on flights.destination_id = destinations.destination_id WHERE flights.{} = ? '''
   sql_alter_data = ""
@@ -125,24 +125,28 @@ class DBOperations:
 
       flight = Flight()
       flight.set_departure_time(self.get_valid_departure_date_and_time())
-      flight.set_origin(input("Enter Flight Origin: ").strip().title())
       flight.set_status(self.get_valid_flight_status())
       flight.set_pilot_id(self.get_valid_id("Enter Pilot ID: "))
+      flight.set_origin_id(self.get_valid_id("Enter Origin ID: "))
       flight.set_destination_id(self.get_valid_id("Enter Destination ID: "))
 
-      self.cur.execute(self.sql_insert, tuple(str(flight).split("\n"))) ### Need to insert multiple values in one statment
+      self.cur.execute(self.sql_insert, tuple(str(flight).split("\n")))
 
       self.conn.commit()
       print("Inserted data successfully")
 
-    except sqlite3.IntegrityError:
-        print("Error: The Pilot ID or Destination ID does not exist")
+    except sqlite3.IntegrityError as e:
+        if "CHECK constraint failed" in str(e):
+            print("The Origin ID and Destination ID cannot be the same")
+        elif "FOREIGN KEY constraint failed" in str(e):
+            print("The Pilot ID, Origin ID or Destination ID do not exist")
+        else:
+            print("Something went wrong when trying to insert data")
     except Exception as e:
         print(e)
     finally:
       self.conn.close()
 
-  # TODO: Use a join to show Pilots' names and destination names
   def select_all(self):
     try:
       self.get_connection()
@@ -240,11 +244,16 @@ class DBOperations:
       # Ensures non-existent foreign keys are not entered
       self.cur.execute("PRAGMA foreign_keys = ON")
 
-      flight_id = int(input("Enter Flight ID to update: "))
+      while True:
+          flight_id = self.get_valid_id("Enter Flight ID: ")
+          if self.check_if_flight_exists(flight_id):
+              break
+          else:
+              print(f"A Flight does not exist for the ID: {flight_id}. Please try again.")
 
       print("Which data would you like to update?")
       print(" 1. Departure Time")
-      print(" 2. Origin")
+      print(" 2. Origin ID")
       print(" 3. Status")
       print(" 4. Pilot ID")
       print(" 5. Destination ID")
@@ -255,7 +264,7 @@ class DBOperations:
       if choice == 1:
           column_to_update = "departure_time"
       elif choice == 2:
-          column_to_update = "origin"
+          column_to_update = "origin_id"
       elif choice == 3:
           column_to_update = "status"
       elif choice == 4:
@@ -267,7 +276,7 @@ class DBOperations:
 
       if choice == 1:
           new_value = self.get_valid_departure_date_and_time()
-      elif choice == 4 or choice == 5:
+      elif choice == 4 or choice == 5 or choice == 2:
           new_value = self.get_valid_id("Enter ID: ")
       elif choice == 3:
           new_value = self.get_valid_flight_status()
@@ -281,8 +290,13 @@ class DBOperations:
       else:
         print("Cannot find this record in the database")
 
-    except sqlite3.IntegrityError:
-        print("Error: The Pilot ID or Destination ID does not exist")
+    except sqlite3.IntegrityError as e:
+        if "CHECK constraint failed" in str(e):
+            print("Error: The Origin ID and Destination ID cannot be the same")
+        elif "FOREIGN KEY constraint failed" in str(e):
+            print("Error: The Pilot ID, Origin ID or Destination ID do not exist")
+        else:
+            print("Something went wrong when updating the data")
     except Exception as e:
         print(e)
     finally:
@@ -353,3 +367,15 @@ class DBOperations:
               return user_input
           else:
               print("Please enter a status of either 'Delayed', 'On Time', 'Scheduled' or 'Cancelled' ")
+
+  def check_if_flight_exists(self,flight_id):
+          try:
+              self.get_connection()
+              self.cur.execute("SELECT * FROM flights WHERE flight_id = ?", (flight_id,))
+              result = self.cur.fetchone()
+
+              return result is not None
+
+          except Exception as e:
+              print(f"Error checking if flight exists: {e}")
+
