@@ -7,12 +7,12 @@ from DBOperation import DBOperations
 while True:
   print("\n Menu:")
   print("**********")
-  print(" 1. Inject Mock Data")
+  print(" 1. Reset data to mock data")
   print(" 2. Create a new flight, destination or pilot record")
   print(" 3. View all Flights")
   print(" 4. Search a flight")
-  print(" 5. Update a flight record")
-  print(" 6. Delete a flight record")
+  print(" 5. Update a flight, destination or pilot record")
+  print(" 6. Delete a flight, destination or pilot record")
   print(" 7. Summarise data")
   print(" 8. Exit\n")
 

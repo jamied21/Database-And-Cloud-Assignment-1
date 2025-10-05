@@ -17,7 +17,7 @@ class DBOperations:
   sql_select_all = '''SELECT flights.*, destinations.city AS [Destination], pilots.name AS [Pilot Name] FROM flights INNER JOIN pilots ON flights.pilot_id = pilots.pilot_id INNER JOIN destinations ON flights.destination_id = destinations.destination_id ORDER BY departure_time ASC'''
   sql_search = '''SELECT flights.*, destinations.city AS [Destination], pilots.name AS [Pilot Name] FROM flights INNER JOIN pilots on flights.pilot_id = pilots.pilot_id INNER JOIN destinations on flights.destination_id = destinations.destination_id WHERE flights.{} = ? '''
   sql_update_data = '''UPDATE {} SET {} WHERE {} = ?'''
-  sql_delete_data = '''DELETE FROM flights WHERE flight_id = ?'''
+  sql_delete_data = '''DELETE FROM {} WHERE {} = ?'''
 
   def __init__(self):
     try:
@@ -473,15 +473,60 @@ class DBOperations:
   def delete_data(self):
     try:
       self.get_connection()
-      flight_id = self.get_valid_id("Enter Flight ID to delete: ")
 
-      self.cur.execute(self.sql_delete_data, (flight_id,))
-      self.conn.commit()
+      #Map choice to table and column
+      choice_to_table_mapping = {
+          '1': ('flights', 'flight_id'),
+          '2': ('pilots', 'pilot_id'),
+          '3': ('destinations', 'destination_id')
+      }
 
-      if self.cur.rowcount != 0:
-        print(str(self.cur.rowcount) + "Row(s) affected.")
-      else:
-        print("Cannot find this record in the database")
+      print("Which record would you like to delete?")
+      print(" 1. Flight record")
+      print(" 2. Pilot Record")
+      print(" 3. Destination Record")
+
+      while True:
+          input_choice = input("Enter your choice as a number: ").strip()
+          if input_choice in ['1', '2', '3']:
+              break
+          print("Invalid choice, please enter '1' or '2' or '3'")
+
+      table_name, column_name = choice_to_table_mapping[input_choice]
+
+      while True:
+              id_input = self.get_valid_id("Enter ID of record to delete: ")
+
+              #Check the record exists first before deletion
+              record_exists = self.check_if_record_exists(table_name, column_name, id_input)
+
+              if not record_exists:
+                  print(f"No record found with ID: {id_input}. Please try again.")
+                  continue
+
+              #Check if record is being used in flights table, prevent deletion if true
+              if input_choice == '2':
+                  self.cur.execute("SELECT COUNT(*) FROM flights WHERE pilot_id = ?", (id_input,))
+                  result = self.cur.fetchone()[0]
+                  if result > 0:
+                      print("Cannot delete this pilot because they are assigned to one or more flights.")
+                      return
+              elif input_choice == '3':
+                  self.cur.execute("SELECT COUNT(*) FROM flights WHERE origin_id = ? OR destination_id = ?", (id_input, id_input))
+                  result = self.cur.fetchone()[0]
+                  if result > 0:
+                      print("Cannot delete this destination because they are assigned to one or more flights.")
+                      return
+
+              self.cur.execute(self.sql_delete_data.format(table_name, column_name), (id_input,))
+              self.conn.commit()
+
+              if self.cur.rowcount != 0:
+                print(str(self.cur.rowcount) + "Row(s) affected.")
+              else:
+                print("No rows were deleted")
+
+              break
 
     except Exception as e:
       print(e)
@@ -646,7 +691,6 @@ class DBOperations:
           return result is not None
       except Exception as e:
           print(f"Error checking if airport exists: {e}")
-
 
   """ Checks if the record exists
 
