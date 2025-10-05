@@ -468,7 +468,9 @@ class DBOperations:
 
 ## TODO: Need to check if can be done for Pilot
   """ 
-        Deletes a flight record based on flight ID entered by the user
+        Deletes a flight, pilot or destination record based on ID entered by the user
+        
+        Will not delete pilot or destination record if being used in the flights table
   """
   def delete_data(self):
     try:
