@@ -7,13 +7,8 @@ from flight import Flight
 from datetime import datetime
 from pilot import Pilot
 
-# Define DBOperation class to manage all data into the database.
-# Give a name of your choice to the database
-
 class DBOperations:
-  sql_create_table_firsttime = "create table if not exists " ## TODO: Make method that just copies the inject_data file
-
-  sql_create_table = "create table TableName"
+  sql_create_table_firsttime = "create table if not exists "
 
   sql_insert_flight = '''INSERT INTO flights (departure_time, status, pilot_id, origin_id, destination_id) VALUES (?, ?, ?, ?, ?)'''
   sql_insert_pilot= '''INSERT INTO pilots (name) VALUES (?)'''
@@ -21,11 +16,8 @@ class DBOperations:
 
   sql_select_all = '''SELECT flights.*, destinations.city AS [Destination], pilots.name AS [Pilot Name] FROM flights INNER JOIN pilots ON flights.pilot_id = pilots.pilot_id INNER JOIN destinations ON flights.destination_id = destinations.destination_id ORDER BY departure_time ASC'''
   sql_search = '''SELECT flights.*, destinations.city AS [Destination], pilots.name AS [Pilot Name] FROM flights INNER JOIN pilots on flights.pilot_id = pilots.pilot_id INNER JOIN destinations on flights.destination_id = destinations.destination_id WHERE flights.{} = ? '''
-  sql_alter_data = ""
   sql_update_data = '''UPDATE {} SET {} WHERE {} = ?'''
   sql_delete_data = '''DELETE FROM flights WHERE flight_id = ?'''
-  sql_drop_table = ""
-  sql_aggregate_data = ""
 
   def __init__(self):
     try:
@@ -34,7 +26,7 @@ class DBOperations:
       self.cur.execute(self.sql_create_table_firsttime)
       self.conn.commit()
     except Exception as e:
-      print(e)
+        print("Unexpected error:", e)
     finally:
       self.conn.close()
 
@@ -118,10 +110,13 @@ class DBOperations:
       self.conn.commit()
       print("Tables and Mock data injected successfully")
     except Exception as e:
-      print(e)
+        print("Unexpected error:", e)
     finally:
       self.conn.close()
 
+  """
+      Creates a record of either a flight, pilot or destination depending on user's choice
+  """
   def insert_data(self):
     try:
       self.get_connection()
@@ -134,13 +129,14 @@ class DBOperations:
       print(" 2. Pilots")
       print(" 3. Destinations")
 
+      #Validate user's choice
       while True:
           user_input = input("Enter your choice ")
           if user_input in ['1','2','3']:
               break
           print("Invalid choice, please enter '1' or '2' or '3'")
 
-
+      #Create a record depending in the input selected
       if  user_input == '1':
           flight = Flight()
           flight.set_departure_time(self.get_valid_departure_date_and_time())
@@ -168,6 +164,7 @@ class DBOperations:
       self.conn.commit()
       print("Inserted data successfully")
 
+    #Catch any FK constraints or other constraints from the Flight's table
     except sqlite3.IntegrityError as e:
         if "CHECK constraint failed" in str(e):
             print("The Origin ID and Destination ID cannot be the same")
@@ -176,10 +173,13 @@ class DBOperations:
         else:
             print("Something went wrong when trying to insert data")
     except Exception as e:
-        print(f"Error: {e}")
+        print("Unexpected error:", e)
     finally:
       self.conn.close()
 
+  """
+       Shows the entire Flights table and adds the Pilot and Destination City names
+  """
   def select_all(self):
     try:
       self.get_connection()
@@ -189,10 +189,13 @@ class DBOperations:
       self.display_results(all_rows, column_names)
 
     except Exception as e:
-      print(e)
+        print("Unexpected error:", e)
     finally:
       self.conn.close()
 
+  """
+       Handles Search Data menu
+  """
   def search_data_menu(self):
      print(" Please Search for a flight using one of the following Criteria:")
      print(" 1. Flight ID")
@@ -200,12 +203,14 @@ class DBOperations:
      print(" 3. Destination ID")
      print(" 4. Departure Time")
 
+     #Validate user choice
      while True:
          criteria_selected = input("Enter your choice ").strip()
          if criteria_selected in ['1', '2', '3', '4']:
              break
          print("Invalid choice, please enter '1' or '2' or '3' or '4'")
 
+     #Search for record based on the criteria selected
      if criteria_selected == '1':
          selected_column = 'flight_id'
          output = self.get_valid_id("Enter Flight ID: ")
@@ -222,9 +227,17 @@ class DBOperations:
          selected_column = 'departure_time'
          output = self.get_valid_departure_date()
          self.search_data(output, selected_column)
-     else:
-         print("Invalid Choice")
 
+  """ Searches for the record based on a id and table chosen
+       
+    Args:
+        id_input (int): The id of the record
+        table_column (str): The column name of the table
+
+    Returns:
+       dataframe: A panda dataframe containing record searched for based on the criteria
+       
+  """
   def search_data(self, id_input, table_column):
     try:
       self.get_connection()
@@ -240,10 +253,16 @@ class DBOperations:
       self.display_results(result, columns)
 
     except Exception as e:
-      print(e)
+        print("Unexpected error:", e)
     finally:
       self.conn.close()
 
+  """ 
+      Counts number of flights per Destination, Pilot or flight status
+      
+      Returns:
+           dataframe: A panda dataframe of the number of flights grouped by Destination ID, Pilot ID or flight status
+  """
   def aggregate_data(self):
     try:
       self.get_connection()
@@ -272,10 +291,13 @@ class DBOperations:
       self.display_results(all_rows, column_names)
 
     except Exception as e:
-       print(e)
+        print("Unexpected error:", e)
     finally:
         self.conn.close()
 
+  """ 
+        Updates flight, pilot or a destination record
+    """
   def update_data(self):
     try:
       self.get_connection()
@@ -310,10 +332,15 @@ class DBOperations:
         else:
             print("Something went wrong when updating the data")
     except Exception as e:
-        print(e)
+        print("Unexpected error:", e)
     finally:
       self.conn.close()
 
+  """ 
+        Searches for flight ID and then updates flight record, can update multiple columns at once or select just one column
+        
+        Takes input as comma separated numerical values
+  """
   def update_flights(self):
 
       while True:
@@ -323,6 +350,7 @@ class DBOperations:
           else:
               print(f"No flight found with ID: {flight_id}. Please try again.")
 
+      #Choice of columns to update
       print("Which data would you like to update?")
       print(" 1. Departure Time")
       print(" 2. Origin ID")
@@ -333,8 +361,9 @@ class DBOperations:
       valid_flight_choices = ['1', '2', '3', '4', '5']
 
       choices = self.get_valid_choices(valid_flight_choices)
-
       column_and_values_to_update = {}
+
+      #Get columns to update and new values to insert into the record
       for choice in choices:
           if choice == '1':
               column = "departure_time"
@@ -368,6 +397,11 @@ class DBOperations:
       else:
           print("Cannot find this record in the database")
 
+  """ 
+        Searches for destination ID and updates destination record, can update multiple columns at once or select just one column
+
+        Takes input as comma separated numerical values
+  """
   def update_destinations(self):
       while True:
           destination_id = self.get_valid_id("Enter Destination ID: ")
@@ -411,6 +445,9 @@ class DBOperations:
       else:
           print("Cannot find destination record in the database")
 
+  """ 
+        Searches for pilot ID and updates pilot record, updates pilot name
+  """
   def update_pilots(self):
 
       while True:
@@ -430,6 +467,9 @@ class DBOperations:
           print("Cannot find pilot record in the database")
 
 ## TODO: Need to check if can be done for Pilot
+  """ 
+        Deletes a flight record based on flight ID entered by the user
+  """
   def delete_data(self):
     try:
       self.get_connection()
@@ -448,6 +488,16 @@ class DBOperations:
     finally:
       self.conn.close()
 
+  """ Display the results of the record or records
+       
+    Args:
+        data (any): data returned from the SQL query
+        table_column (list): The column name of the table
+
+    Returns:
+       dataframe: A panda dataframe of the results of the SQL query
+       
+  """
   def display_results(self,data, columns):
       if data:
           df = pd.DataFrame(data, columns=columns)
@@ -455,6 +505,9 @@ class DBOperations:
       else:
           print("No records available.")
 
+  """ 
+      Ensures departure date and time that is entered by the user is in YYYY-MM-DD HH:MM format
+  """
   def get_valid_departure_date_and_time(self):
       while True:
           user_input = input("Enter Departure Time (YYYY-MM-DD HH:MM): ")
@@ -467,6 +520,9 @@ class DBOperations:
           except Exception as e:
               print("Unexpected error:", e)
 
+  """ 
+      Ensures departure date and time that is entered by the user is in YYYY-MM-DD format
+  """
   def get_valid_departure_date(self):
       while True:
           user_input = input("Enter Departure Date YYYY-MM-DD: ")
@@ -478,6 +534,14 @@ class DBOperations:
           except Exception as e:
               print("Unexpected error:", e)
 
+  """ Ensures Id entered by the user is an integer
+  
+       Args:
+            input_message (str): Custom user input message for the user
+    
+        Returns:
+           integer: The id entered by the user
+  """
   def get_valid_id(self,input_message):
       while True:
           try:
@@ -486,6 +550,11 @@ class DBOperations:
           except ValueError:
               print("Invalid input. Please enter a valid integer for ID.")
 
+  """ Ensures Flight Status entered by the user is from the available choices of Delayed, Scheduled or On Time
+         
+         Returns:
+            string: The flight status entered by the user
+   """
   def get_valid_flight_status(self):
       valid_choices = ["Delayed", "On Time", "Scheduled","Cancelled"]
       while True:
@@ -496,6 +565,14 @@ class DBOperations:
           else:
               print("Please enter a status of either 'Delayed', 'On Time', 'Scheduled' or 'Cancelled' ")
 
+  """ Ensures input entered by the user is a valid string with no numbers or special characters
+
+       Args:
+            input_message (str): Custom user input message for the user
+
+        Returns:
+           string: The input entered by the user
+  """
   def get_valid_string_input(self, input_message):
       regex = re.compile('[@_!#$%^&*()<>?/\|}{~:]')
       while True:
@@ -510,6 +587,14 @@ class DBOperations:
               else:
                   return user_input.lower().title()
 
+  """ Ensures input entered by the user is a valid Airport code with no numbers or special characters
+
+        Args:
+             input_message (str): Custom user input message for the user
+
+         Returns:
+            string: The airport code entered by the user
+   """
   def get_valid_airport_code(self, input_message):
       regex = re.compile('[@_!#$%^&*()<>?/\|}{~:]')
       while True:
@@ -528,6 +613,16 @@ class DBOperations:
           else:
               return user_input
 
+  """ Checks if the record exists
+
+         Args:
+              table (str): Table being checked
+              column (str): Column being checked
+              record_id (int): Record ID being checked
+
+          Returns:
+             boolean: True if the record exists in the table, false otherwise
+    """
   def check_if_record_exists(self,table,column,record_id):
       try:
           sql_query = "SELECT * FROM {} WHERE {} = ?"
@@ -537,6 +632,13 @@ class DBOperations:
       except Exception as e:
           print(f"Error checking if record exists: {e}")
 
+  """ Checks if the record exists
+
+         Args:
+              airport (str): Airport Code being checked for existence
+          Returns:
+             boolean: True if the airport code already exists in the destinations table, false otherwise
+    """
   def check_if_airport_exists(self,airport):
       try:
           self.cur.execute("SELECT * FROM destinations WHERE airport = ?", (airport,))
@@ -545,6 +647,15 @@ class DBOperations:
       except Exception as e:
           print(f"Error checking if airport exists: {e}")
 
+
+  """ Checks if the record exists
+
+         Args:
+              valid_choices (list): List of valid choices/options that can be entered by the user
+            
+          Returns:
+             list: list of valid input that has been entered by the user, otherwise error message
+    """
   def get_valid_choices(self,valid_choices):
       while True:
           user_input = input("Enter one or more column to update as a number separated by a comma e.g 1,2,3: ").strip()
