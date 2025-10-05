@@ -200,28 +200,31 @@ class DBOperations:
      print(" 3. Destination ID")
      print(" 4. Departure Time")
 
-     try:
-         criteria_selected = int(input("Enter criteria to search for: ").strip())
-         if criteria_selected == 1:
-             selected_column = 'flight_id'
-             output = self.get_valid_id("Enter Flight ID: ")
-             self.search_data(output, selected_column)
-         elif criteria_selected == 2:
-             selected_column = 'pilot_id'
-             output = self.get_valid_id("Enter Pilot ID: ")
-             self.search_data(output, selected_column)
-         elif criteria_selected == 3:
-             selected_column = 'destination_id'
-             output = self.get_valid_id("Enter Destination ID: ")
-             self.search_data(output, selected_column)
-         elif criteria_selected == 4:
-             selected_column = 'departure_time'
-             output = self.get_valid_departure_date()
-             self.search_data(output, selected_column)
-         else:
-             print("Invalid Choice")
-     except ValueError:
-         print("Invalid input type. Please enter a number for IDs")
+     while True:
+         criteria_selected = input("Enter your choice ").strip()
+         if criteria_selected in ['1', '2', '3', '4']:
+             break
+         print("Invalid choice, please enter '1' or '2' or '3' or '4'")
+
+     if criteria_selected == '1':
+         selected_column = 'flight_id'
+         output = self.get_valid_id("Enter Flight ID: ")
+         self.search_data(output, selected_column)
+     elif criteria_selected == '2':
+         selected_column = 'pilot_id'
+         output = self.get_valid_id("Enter Pilot ID: ")
+         self.search_data(output, selected_column)
+     elif criteria_selected == '3':
+         selected_column = 'destination_id'
+         output = self.get_valid_id("Enter Destination ID: ")
+         self.search_data(output, selected_column)
+     elif criteria_selected == '4':
+         selected_column = 'departure_time'
+         output = self.get_valid_departure_date()
+         self.search_data(output, selected_column)
+     else:
+         print("Invalid Choice")
+
 
   def search_data(self, id_input, table_column):
     try:
@@ -252,7 +255,7 @@ class DBOperations:
       print(" 3. Flight Status")
 
       while True:
-          input_choice = input("Enter your choice as a number: ")
+          input_choice = input("Enter your choice as a number: ").strip()
           if input_choice in ['1', '2', '3']:
               break
           print("Invalid choice, please enter '1' or '2' or '3'")
@@ -297,7 +300,7 @@ class DBOperations:
 
       ## TODO: Print previous pilot, destination and then result? e.g John Cena -> Jane Doe
       while True:
-          choice = input("Enter your choice ")
+          choice = input("Enter your choice ").strip()
           if choice in ['1', '2', '3', '4', '5']:
               break
           print("Invalid choice, please enter '1' or '2' or '3' or '4' or '5'")
