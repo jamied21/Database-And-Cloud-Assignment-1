@@ -29,6 +29,5 @@ class Destination:
     def set_city(self,city):
         self.city = city
 
-
     def __str__(self):
         return "Destination ID: {}, Airport {}, Country: {}, City {}".format( self.airport, self.country, self.city)

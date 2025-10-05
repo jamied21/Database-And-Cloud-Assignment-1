@@ -1,8 +1,5 @@
 from DBOperation import DBOperations
 
-
-
-
 # The main function will parse arguments.
 # These argument will be defined by the users on the console.
 # The user will select a choice from the menu to interact with the database.
