@@ -22,7 +22,7 @@ class DBOperations:
   sql_select_all = '''SELECT flights.*, destinations.city AS [Destination], pilots.name AS [Pilot Name] FROM flights INNER JOIN pilots ON flights.pilot_id = pilots.pilot_id INNER JOIN destinations ON flights.destination_id = destinations.destination_id ORDER BY departure_time ASC'''
   sql_search = '''SELECT flights.*, destinations.city AS [Destination], pilots.name AS [Pilot Name] FROM flights INNER JOIN pilots on flights.pilot_id = pilots.pilot_id INNER JOIN destinations on flights.destination_id = destinations.destination_id WHERE flights.{} = ? '''
   sql_alter_data = ""
-  sql_update_data = '''UPDATE flights SET {} = ? WHERE flight_id = ?'''
+  sql_update_data = '''UPDATE flights SET {} WHERE flight_id = ?'''
   sql_delete_data = '''DELETE FROM flights WHERE flight_id = ?'''
   sql_drop_table = ""
   sql_aggregate_data = ""
@@ -225,7 +225,6 @@ class DBOperations:
      else:
          print("Invalid Choice")
 
-
   def search_data(self, id_input, table_column):
     try:
       self.get_connection()
@@ -283,58 +282,21 @@ class DBOperations:
 
       # Ensures non-existent foreign keys are not entered
       self.cur.execute("PRAGMA foreign_keys = ON")
+      print("Which table would you like to update?")
+      print(" 1. Flights")
+      print(" 2. Pilots")
+      print(" 3. Destinations")
 
       while True:
-          flight_id = self.get_valid_id("Enter Flight ID: ")
-          if self.check_if_flight_exists(flight_id):
+          input_choice = input("Enter your choice as a number: ").strip()
+          if input_choice in ['1', '2', '3']:
               break
-          else:
-              print(f"A Flight does not exist for the ID: {flight_id}. Please try again.")
+          print("Invalid choice, please enter '1' or '2' or '3'")
 
-      print("Which data would you like to update?")
-      print(" 1. Departure Time")
-      print(" 2. Origin ID")
-      print(" 3. Status")
-      print(" 4. Pilot ID")
-      print(" 5. Destination ID")
+      if input_choice == '1':
+          self.update_flights()
 
       ## TODO: Print previous pilot, destination and then result? e.g John Cena -> Jane Doe
-      while True:
-          choice = input("Enter your choice ").strip()
-          if choice in ['1', '2', '3', '4', '5']:
-              break
-          print("Invalid choice, please enter '1' or '2' or '3' or '4' or '5'")
-
-      column_to_update = ''
-
-      if choice == '1':
-          column_to_update = "departure_time"
-      elif choice == '2':
-          column_to_update = "origin_id"
-      elif choice == '3':
-          column_to_update = "status"
-      elif choice == '4':
-          column_to_update = "pilot_id"
-      elif choice == '5':
-          column_to_update = "destination_id"
-      else:
-          print("Invalid Choice")
-
-      if choice == '1':
-          new_value = self.get_valid_departure_date_and_time()
-      elif choice == '2' or choice == '4' or choice == '5':
-          new_value = self.get_valid_id("Enter ID: ")
-      elif choice == '3':
-          new_value = self.get_valid_flight_status()
-      else:
-          new_value = input("Enter new value:").strip().title()
-
-      self.cur.execute(self.sql_update_data.format(column_to_update), (new_value, flight_id))
-      self.conn.commit()
-      if self.cur.rowcount != 0:
-        print(str(self.cur.rowcount) + "Row(s) affected.")
-      else:
-        print("Cannot find this record in the database")
 
     except sqlite3.IntegrityError as e:
         if "CHECK constraint failed" in str(e):
@@ -348,6 +310,62 @@ class DBOperations:
     finally:
       self.conn.close()
 
+
+  def update_flights(self):
+
+      while True:
+          flight_id = self.get_valid_id("Enter Flight ID: ")
+          if self.check_if_flight_exists(flight_id):
+              break
+          else:
+              print(f"No flight found with ID: {flight_id}. Please try again.")
+
+      print("Which data would you like to update?")
+      print(" 1. Departure Time")
+      print(" 2. Origin ID")
+      print(" 3. Status")
+      print(" 4. Pilot ID")
+      print(" 5. Destination ID")
+
+      valid_choices = ['1', '2', '3', '4', '5']
+
+      choices = self.get_valid_choices(valid_choices)
+
+      column_and_values_to_update = {}
+      for choice in choices:
+          if choice == '1':
+              column = "departure_time"
+              new_value = self.get_valid_departure_date_and_time()
+              column_and_values_to_update.update({column: new_value})
+          elif choice == '2':
+              column = "origin_id"
+              new_value = self.get_valid_id("Enter ID: ")
+              column_and_values_to_update.update({column: new_value})
+          elif choice == '3':
+              column = "status"
+              new_value = self.get_valid_flight_status()
+              column_and_values_to_update.update({column: new_value})
+          elif choice == '4':
+              column = "pilot_id"
+              new_value = self.get_valid_id("Enter ID: ")
+              column_and_values_to_update.update({column: new_value})
+          elif choice == '5':
+              column = "destination_id"
+              new_value = self.get_valid_id("Enter ID: ")
+              column_and_values_to_update.update({column: new_value})
+
+      columns = ", ".join([f"{col} = ?" for col in column_and_values_to_update.keys()])
+      values = list(column_and_values_to_update.values())
+      values.append(flight_id)
+
+      self.cur.execute(self.sql_update_data.format(columns), tuple(values))
+      self.conn.commit()
+      if self.cur.rowcount != 0:
+          print(str(self.cur.rowcount) + "Row(s) affected.")
+      else:
+          print("Cannot find this record in the database")
+
+## TODO: Need to check if can be done for Pilot
   def delete_data(self):
     try:
       self.get_connection()
@@ -462,5 +480,15 @@ class DBOperations:
       except Exception as e:
           print(f"Error checking if airport exists: {e}")
 
-
+  def get_valid_choices(self,valid_choices):
+      while True:
+          user_input = input("Enter one or more column to update as a number separated by a comma e.g 1,2,3: ").strip()
+          if len(user_input) == 0:
+              print("Input cannot be empty.")
+          choices = user_input.split(",")
+          invalid_choices = [c for c in choices if c not in valid_choices]
+          if len(invalid_choices) > 0:
+              print("Invalid choice".join(invalid_choices))
+          else:
+              return set(choices)
 
