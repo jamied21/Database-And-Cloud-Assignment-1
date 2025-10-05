@@ -550,10 +550,14 @@ class DBOperations:
           user_input = input("Enter one or more column to update as a number separated by a comma e.g 1,2,3: ").strip()
           if len(user_input) == 0:
               print("Input cannot be empty.")
+              continue
+          elif any(c not in "0123456789, " for c in user_input):
+              print("Invalid input. Only numbers and commas are allowed.")
           choices = user_input.split(",")
           invalid_choices = [c for c in choices if c not in valid_choices]
           if len(invalid_choices) > 0:
-              print("Invalid choice".join(invalid_choices))
+              print("Invalid choices: " + ", ".join(invalid_choices))
           else:
-              return set(choices)
+              unique_choices = sorted(set(choices))
+              return unique_choices
 
