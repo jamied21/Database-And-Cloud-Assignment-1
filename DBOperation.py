@@ -176,7 +176,7 @@ class DBOperations:
         else:
             print("Something went wrong when trying to insert data")
     except Exception as e:
-        print(e)
+        print(f"Error: {e}")
     finally:
       self.conn.close()
 
@@ -251,13 +251,17 @@ class DBOperations:
       print(" 2. Pilot")
       print(" 3. Flight Status")
 
-      input_choice = int(input("Enter your choice as a number: "))
+      while True:
+          input_choice = input("Enter your choice as a number: ")
+          if input_choice in ['1', '2', '3']:
+              break
+          print("Invalid choice, please enter '1' or '2' or '3'")
 
-      if input_choice == 1:
+      if input_choice == '1':
           self.sql_aggregate_data = "SELECT COUNT(*) AS [Number of Flights], destinations.city AS [City] FROM flights INNER JOIN destinations ON flights.destination_id = destinations.destination_id GROUP BY destinations.city"
-      elif input_choice == 2:
+      elif input_choice == '2':
           self.sql_aggregate_data = "SELECT COUNT(*) AS [Number of Flights], pilots.name AS [Pilot] FROM flights INNER JOIN pilots ON flights.pilot_id = pilots.pilot_id GROUP BY pilots.name"
-      elif input_choice == 3:
+      elif input_choice == '3':
           self.sql_aggregate_data = "SELECT COUNT(*) AS [Number of Flights], flights.status AS [Status] FROM flights GROUP BY flights.status"
 
       self.cur.execute(self.sql_aggregate_data)
@@ -291,27 +295,33 @@ class DBOperations:
       print(" 4. Pilot ID")
       print(" 5. Destination ID")
 
-      choice = int(input("Enter your choice "))
+      ## TODO: Print previous pilot, destination and then result? e.g John Cena -> Jane Doe
+      while True:
+          choice = input("Enter your choice ")
+          if choice in ['1', '2', '3', '4', '5']:
+              break
+          print("Invalid choice, please enter '1' or '2' or '3' or '4' or '5'")
+
       column_to_update = ''
 
-      if choice == 1:
+      if choice == '1':
           column_to_update = "departure_time"
-      elif choice == 2:
+      elif choice == '2':
           column_to_update = "origin_id"
-      elif choice == 3:
+      elif choice == '3':
           column_to_update = "status"
-      elif choice == 4:
+      elif choice == '4':
           column_to_update = "pilot_id"
-      elif choice == 5:
+      elif choice == '5':
           column_to_update = "destination_id"
       else:
           print("Invalid Choice")
 
-      if choice == 1:
+      if choice == '1':
           new_value = self.get_valid_departure_date_and_time()
-      elif choice == 4 or choice == 5 or choice == 2:
+      elif choice == '2' or choice == '4' or choice == '5':
           new_value = self.get_valid_id("Enter ID: ")
-      elif choice == 3:
+      elif choice == '3':
           new_value = self.get_valid_flight_status()
       else:
           new_value = input("Enter new value:").strip().title()
