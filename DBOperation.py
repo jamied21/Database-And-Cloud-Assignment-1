@@ -279,9 +279,9 @@ class DBOperations:
           print("Invalid choice, please enter '1' or '2' or '3'")
 
       if input_choice == '1':
-          self.sql_aggregate_data = "SELECT COUNT(*) AS [Number of Flights], destinations.city AS [City] FROM flights INNER JOIN destinations ON flights.destination_id = destinations.destination_id GROUP BY destinations.city"
+          self.sql_aggregate_data = "SELECT COUNT(*) AS [Number of Flights], destinations.airport AS [Destination Airport] FROM flights INNER JOIN destinations ON flights.destination_id = destinations.destination_id GROUP BY flights.destination_id, destinations.airport"
       elif input_choice == '2':
-          self.sql_aggregate_data = "SELECT COUNT(*) AS [Number of Flights], pilots.name AS [Pilot] FROM flights INNER JOIN pilots ON flights.pilot_id = pilots.pilot_id GROUP BY pilots.name"
+          self.sql_aggregate_data = "SELECT COUNT(*) AS [Number of Flights], pilots.name AS [Pilot] FROM flights INNER JOIN pilots ON flights.pilot_id = pilots.pilot_id GROUP BY pilots.pilot_id, pilots.name"
       elif input_choice == '3':
           self.sql_aggregate_data = "SELECT COUNT(*) AS [Number of Flights], flights.status AS [Status] FROM flights GROUP BY flights.status"
 
