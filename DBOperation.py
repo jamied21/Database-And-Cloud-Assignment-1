@@ -22,7 +22,7 @@ class DBOperations:
   sql_select_all = '''SELECT flights.*, destinations.city AS [Destination], pilots.name AS [Pilot Name] FROM flights INNER JOIN pilots ON flights.pilot_id = pilots.pilot_id INNER JOIN destinations ON flights.destination_id = destinations.destination_id ORDER BY departure_time ASC'''
   sql_search = '''SELECT flights.*, destinations.city AS [Destination], pilots.name AS [Pilot Name] FROM flights INNER JOIN pilots on flights.pilot_id = pilots.pilot_id INNER JOIN destinations on flights.destination_id = destinations.destination_id WHERE flights.{} = ? '''
   sql_alter_data = ""
-  sql_update_data = '''UPDATE flights SET {} WHERE flight_id = ?'''
+  sql_update_data = '''UPDATE {} SET {} WHERE {} = ?'''
   sql_delete_data = '''DELETE FROM flights WHERE flight_id = ?'''
   sql_drop_table = ""
   sql_aggregate_data = ""
@@ -295,6 +295,10 @@ class DBOperations:
 
       if input_choice == '1':
           self.update_flights()
+      if input_choice == '2':
+          self.update_pilots()
+      if input_choice == '3':
+          self.update_destinations()
 
       ## TODO: Print previous pilot, destination and then result? e.g John Cena -> Jane Doe
 
@@ -310,12 +314,11 @@ class DBOperations:
     finally:
       self.conn.close()
 
-
   def update_flights(self):
 
       while True:
           flight_id = self.get_valid_id("Enter Flight ID: ")
-          if self.check_if_flight_exists(flight_id):
+          if self.check_if_record_exists("flights","flight_id",flight_id):
               break
           else:
               print(f"No flight found with ID: {flight_id}. Please try again.")
@@ -327,9 +330,9 @@ class DBOperations:
       print(" 4. Pilot ID")
       print(" 5. Destination ID")
 
-      valid_choices = ['1', '2', '3', '4', '5']
+      valid_flight_choices = ['1', '2', '3', '4', '5']
 
-      choices = self.get_valid_choices(valid_choices)
+      choices = self.get_valid_choices(valid_flight_choices)
 
       column_and_values_to_update = {}
       for choice in choices:
@@ -358,12 +361,73 @@ class DBOperations:
       values = list(column_and_values_to_update.values())
       values.append(flight_id)
 
-      self.cur.execute(self.sql_update_data.format(columns), tuple(values))
+      self.cur.execute(self.sql_update_data.format('flights',columns, 'flight_id'), tuple(values))
       self.conn.commit()
       if self.cur.rowcount != 0:
           print(str(self.cur.rowcount) + "Row(s) affected.")
       else:
           print("Cannot find this record in the database")
+
+  def update_destinations(self):
+      while True:
+          destination_id = self.get_valid_id("Enter Destination ID: ")
+          if self.check_if_record_exists("destinations","destination_id",destination_id):
+              break
+          else:
+              print(f"No destination found with ID: {destination_id}. Please try again.")
+
+      print("Which data would you like to update?")
+      print(" 1. Airport")
+      print(" 2. Country")
+      print(" 3. City")
+
+      valid_destination_choices = ['1', '2', '3']
+
+      choices = self.get_valid_choices(valid_destination_choices)
+
+      column_and_values_to_update = {}
+      for choice in choices:
+          if choice == '1':
+              column = "airport"
+              new_value = self.get_valid_airport_code("Enter Airport Code: ")
+              column_and_values_to_update.update({column: new_value})
+          elif choice == '2':
+              column = "country"
+              new_value = self.get_valid_string_input("Enter Country: ")
+              column_and_values_to_update.update({column: new_value})
+          elif choice == '3':
+              column = "city"
+              new_value = self.get_valid_string_input("Enter City: ")
+              column_and_values_to_update.update({column: new_value})
+
+      columns = ", ".join([f"{col} = ?" for col in column_and_values_to_update.keys()])
+      values = list(column_and_values_to_update.values())
+      values.append(destination_id)
+
+      self.cur.execute(self.sql_update_data.format('destinations', columns,'destination_id'), tuple(values))
+      self.conn.commit()
+      if self.cur.rowcount != 0:
+          print(str(self.cur.rowcount) + "Row(s) affected.")
+      else:
+          print("Cannot find destination record in the database")
+
+  def update_pilots(self):
+
+      while True:
+          pilot_id = self.get_valid_id("Enter Pilot ID: ")
+          if self.check_if_record_exists("pilots", "pilot_id", pilot_id):
+              break
+          else:
+              print(f"No Pilot found with ID: {pilot_id}. Please try again.")
+
+      new_pilot_name = self.get_valid_string_input("Enter Pilot Name: ")
+
+      self.cur.execute(self.sql_update_data.format('pilots', 'name = ?','pilot_id'), (new_pilot_name, pilot_id))
+      self.conn.commit()
+      if self.cur.rowcount != 0:
+          print(str(self.cur.rowcount) + "Row(s) affected.")
+      else:
+          print("Cannot find pilot record in the database")
 
 ## TODO: Need to check if can be done for Pilot
   def delete_data(self):
@@ -464,13 +528,14 @@ class DBOperations:
           else:
               return user_input
 
-  def check_if_flight_exists(self,flight_id):
+  def check_if_record_exists(self,table,column,record_id):
       try:
-          self.cur.execute("SELECT * FROM flights WHERE flight_id = ?", (flight_id,))
+          sql_query = "SELECT * FROM {} WHERE {} = ?"
+          self.cur.execute(sql_query.format(table,column), (record_id,))
           result = self.cur.fetchone()
           return result is not None
       except Exception as e:
-          print(f"Error checking if flight exists: {e}")
+          print(f"Error checking if record exists: {e}")
 
   def check_if_airport_exists(self,airport):
       try:
