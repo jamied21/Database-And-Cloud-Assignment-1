@@ -393,7 +393,7 @@ class DBOperations:
       self.cur.execute(self.sql_update_data.format('flights',columns, 'flight_id'), tuple(values))
       self.conn.commit()
       if self.cur.rowcount != 0:
-          print(str(self.cur.rowcount) + "Row(s) affected.")
+          print("Record successfully updated")
       else:
           print("Cannot find this record in the database")
 
@@ -441,7 +441,7 @@ class DBOperations:
       self.cur.execute(self.sql_update_data.format('destinations', columns,'destination_id'), tuple(values))
       self.conn.commit()
       if self.cur.rowcount != 0:
-          print(str(self.cur.rowcount) + "Row(s) affected.")
+          print("Record successfully updated")
       else:
           print("Cannot find destination record in the database")
 
@@ -462,7 +462,7 @@ class DBOperations:
       self.cur.execute(self.sql_update_data.format('pilots', 'name = ?','pilot_id'), (new_pilot_name, pilot_id))
       self.conn.commit()
       if self.cur.rowcount != 0:
-          print(str(self.cur.rowcount) + "Row(s) affected.")
+          print("Record successfully updated")
       else:
           print("Cannot find pilot record in the database")
 
@@ -524,7 +524,7 @@ class DBOperations:
               self.conn.commit()
 
               if self.cur.rowcount != 0:
-                print(str(self.cur.rowcount) + "Row(s) affected.")
+                print("Records deleted:" + str(self.cur.rowcount))
               else:
                 print("No rows were deleted")
 
